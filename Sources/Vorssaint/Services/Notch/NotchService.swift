@@ -226,6 +226,7 @@ final class NotchService: ObservableObject {
             || CameraPreviewService.shared.keepsNotchPermissionPrompt
             || (expanded && !showingSections && selected == .captures && captureContent != nil)
             || (expanded && !showingSections && selected == .tools && (QuickLauncherService.shared.activeUtility != nil || QuickLauncherService.shared.isEditing))
+            || (expanded && !showingSections && selected == .tasks && NotchTaskService.shared.interacting)
     }
     /// Up and measuring its display. Settings previews read the island's
     /// size only then.

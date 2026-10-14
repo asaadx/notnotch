@@ -3,15 +3,19 @@
 
 import Foundation
 
-/// The island's to-do list. Rows stay where they were added: finishing one
-/// strikes it through in place and changing its time never moves it.
-@MainActor
+/// The island's to-do list, read by time of day. Finishing a task strikes it
+/// through in place; only a new time moves it.
 final class NotchTaskService: ObservableObject {
     static let shared = NotchTaskService()
 
     @Published private(set) var tasks: [NotchTask] = []
     @Published private(set) var loadFailed = false
     @Published private(set) var saveFailed = false
+    /// A time being picked, a row being edited or a task being written. The
+    /// island stays open around it, as it does for the tools being edited.
+    @Published var interacting = false
+    /// The time the next task is written at, kept while the island closes.
+    var draftMinutes: Int?
     private var store = NotchTaskStore(directoryURL: PrivateFileStore.containerURL)
     private var loaded = false
 
@@ -33,6 +37,7 @@ final class NotchTaskService: ObservableObject {
     func add(minutes: Int, text: String) -> Bool {
         guard canAdd, let text = NotchTaskSupport.sanitizedText(text) else { return false }
         commit(tasks + [NotchTask(minutes: NotchTaskSupport.clampedMinutes(minutes), text: text)])
+        draftMinutes = NotchTaskSupport.followingMinutes(after: minutes)
         return true
     }
 

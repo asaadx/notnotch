@@ -74,6 +74,14 @@ struct NotchTaskTimeWheel: View {
             hovering ? installScrollMonitor() : removeScrollMonitor()
         }
         .onAppear { offset = CGFloat(selection) }
+        // A typed time turns the drum the short way round to its value.
+        .onChange(of: selection) { _, value in
+            let current = Int(offset.rounded())
+            guard dragStart == nil, wrapped(current) != value else { return }
+            var delta = value - wrapped(current)
+            if loops, abs(delta) > count / 2 { delta -= delta.signum() * count }
+            snap(to: CGFloat(current + delta), velocity: 0)
+        }
         .onDisappear { removeScrollMonitor() }
         .accessibilityElement()
         .accessibilityLabel(label)
@@ -173,9 +181,12 @@ struct NotchTaskTimeWheel: View {
         return value
     }
 
+    private func wrapped(_ row: Int) -> Int {
+        loops ? ((row % count) + count) % count : min(count - 1, max(0, row))
+    }
+
     private func commit(_ row: Int) {
-        let value = ((row % count) + count) % count
-        let clamped = loops ? value : min(count - 1, max(0, row))
+        let clamped = wrapped(row)
         if selection != clamped { selection = clamped }
     }
 }
