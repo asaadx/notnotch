@@ -1,0 +1,131 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 Vorssaint
+
+import Foundation
+
+/// One line of the island's to-do list: a time of day and what to do then.
+/// The time is minutes after midnight, with no date, so a list made for a
+/// day reads the same the next morning.
+struct NotchTask: Codable, Equatable, Identifiable {
+    var id = UUID()
+    var minutes: Int
+    var text: String
+    var done = false
+}
+
+/// The time of day as three wheels show it: an hour from 1 to 12, a minute
+/// and a meridiem.
+struct NotchTaskTime: Equatable {
+    var hour: Int
+    var minute: Int
+    var pm: Bool
+
+    init(hour: Int, minute: Int, pm: Bool) {
+        self.hour = hour
+        self.minute = minute
+        self.pm = pm
+    }
+
+    init(minutes: Int) {
+        let clamped = NotchTaskSupport.clampedMinutes(minutes)
+        let hour24 = clamped / 60
+        hour = hour24 % 12 == 0 ? 12 : hour24 % 12
+        minute = clamped % 60
+        pm = hour24 >= 12
+    }
+
+    var minutes: Int {
+        let hour24 = (min(12, max(1, hour)) % 12) + (pm ? 12 : 0)
+        return hour24 * 60 + min(59, max(0, minute))
+    }
+}
+
+enum NotchTaskSupport {
+    static let maximumCount = 40
+    static let maximumTextLength = 120
+    static let fileName = "Tasks.json"
+    private static let day = 24 * 60
+
+    static func clampedMinutes(_ minutes: Int) -> Int {
+        min(day - 1, max(0, minutes))
+    }
+
+    /// The list's own short form, lowercase and without a space: "5pm",
+    /// "12am", "9:30am". Whole hours drop their minutes.
+    static func timeLabel(_ minutes: Int) -> String {
+        let time = NotchTaskTime(minutes: minutes)
+        let meridiem = time.pm ? "pm" : "am"
+        return time.minute == 0
+            ? "\(time.hour)\(meridiem)"
+            : "\(time.hour):" + String(format: "%02d", time.minute) + meridiem
+    }
+
+    /// "5pm — gym": the whole row as it reads, lowercase throughout.
+    static func rowText(_ task: NotchTask) -> String {
+        timeLabel(task.minutes) + " — " + displayText(task.text)
+    }
+
+    static func displayText(_ text: String) -> String {
+        text.lowercased()
+    }
+
+    /// One line, trimmed and bounded; nil when nothing is left to keep.
+    static func sanitizedText(_ text: String) -> String? {
+        let line = text.components(separatedBy: .newlines).joined(separator: " ")
+            .trimmingCharacters(in: .whitespaces)
+        guard !line.isEmpty else { return nil }
+        return String(line.prefix(maximumTextLength))
+    }
+
+    /// The next whole hour, so a new task starts somewhere sensible.
+    static func suggestedMinutes(now: Date, calendar: Calendar = .current) -> Int {
+        let parts = calendar.dateComponents([.hour], from: now)
+        return ((parts.hour ?? 8) + 1) % 24 * 60
+    }
+
+    /// Whatever was written by hand or by an older version comes back in
+    /// bounds; rows keep the order they were stored in.
+    static func sanitized(_ tasks: [NotchTask]) -> [NotchTask] {
+        var seen = Set<UUID>()
+        return tasks.compactMap { task -> NotchTask? in
+            guard seen.insert(task.id).inserted, let text = sanitizedText(task.text) else { return nil }
+            var task = task
+            task.text = text
+            task.minutes = clampedMinutes(task.minutes)
+            return task
+        }
+        .prefix(maximumCount).map { $0 }
+    }
+}
+
+/// The list on disk, beside the scratchpad in the app's private container.
+/// A failed read never authorizes a save, so an unreadable file is left for
+/// the user rather than overwritten with an empty list.
+struct NotchTaskStore {
+    let directoryURL: URL?
+    private(set) var canSave = false
+
+    init(directoryURL: URL?) {
+        self.directoryURL = directoryURL
+    }
+
+    mutating func load() throws -> [NotchTask] {
+        canSave = false
+        guard let directoryURL else { throw CocoaError(.fileReadUnknown) }
+        let url = directoryURL.appendingPathComponent(NotchTaskSupport.fileName)
+        let tasks: [NotchTask]
+        do {
+            tasks = try JSONDecoder().decode([NotchTask].self, from: Data(contentsOf: url))
+        } catch let error as CocoaError where error.code == .fileReadNoSuchFile {
+            tasks = []
+        }
+        canSave = true
+        return NotchTaskSupport.sanitized(tasks)
+    }
+
+    func save(_ tasks: [NotchTask]) -> Bool {
+        guard canSave, let directoryURL, let data = try? JSONEncoder().encode(tasks) else { return false }
+        return PrivateFileStore.createDirectory(at: directoryURL)
+            && PrivateFileStore.write(data, to: directoryURL.appendingPathComponent(NotchTaskSupport.fileName))
+    }
+}
