@@ -77,6 +77,58 @@ enum NotchTaskSupport {
         return String(line.prefix(maximumTextLength))
     }
 
+    /// What comes after a task just added: half an hour later.
+    static let followingInterval = 30
+
+    static func followingMinutes(after minutes: Int) -> Int {
+        (clampedMinutes(minutes) + followingInterval) % day
+    }
+
+    /// The list as it reads: by time of day, with tasks at the same time in
+    /// the order they were added. Finishing one never moves it.
+    static func ordered(_ tasks: [NotchTask]) -> [NotchTask] {
+        tasks.enumerated()
+            .sorted { ($0.element.minutes, $0.offset) < ($1.element.minutes, $1.offset) }
+            .map(\.element)
+    }
+
+    /// A time typed by hand: "8", "8pm", "8:30p", "830pm", "20:30" or
+    /// "2030". An hour of 1 to 12 without a meridiem keeps `pm`, the one the
+    /// drums show. Nil when it is not a time.
+    static func parseTime(_ text: String, pm: Bool) -> Int? {
+        var rest = text.lowercased().filter { !$0.isWhitespace }
+        var meridiem: Bool?
+        for (suffix, isPM) in [("am", false), ("pm", true), ("a", false), ("p", true)] where rest.hasSuffix(suffix) {
+            meridiem = isPM
+            rest.removeLast(suffix.count)
+            break
+        }
+        let hourText: Substring
+        let minuteText: Substring
+        if let separator = rest.firstIndex(where: { $0 == ":" || $0 == "." }) {
+            hourText = rest[..<separator]
+            minuteText = rest[rest.index(after: separator)...]
+            guard minuteText.count == 2 else { return nil }
+        } else if rest.count <= 2 {
+            hourText = Substring(rest)
+            minuteText = "0"
+        } else if rest.count <= 4 {
+            hourText = rest.dropLast(2)
+            minuteText = rest.suffix(2)
+        } else {
+            return nil
+        }
+        guard !hourText.isEmpty, hourText.allSatisfy(\.isASCII), minuteText.allSatisfy(\.isASCII),
+              let hour = Int(hourText), let minute = Int(minuteText), (0..<60).contains(minute) else { return nil }
+        if let meridiem {
+            guard (1...12).contains(hour) else { return nil }
+            return NotchTaskTime(hour: hour, minute: minute, pm: meridiem).minutes
+        }
+        if (1...12).contains(hour) { return NotchTaskTime(hour: hour, minute: minute, pm: pm).minutes }
+        guard (0..<24).contains(hour) else { return nil }
+        return hour * 60 + minute
+    }
+
     /// The next whole hour, so a new task starts somewhere sensible.
     static func suggestedMinutes(now: Date, calendar: Calendar = .current) -> Int {
         let parts = calendar.dateComponents([.hour], from: now)

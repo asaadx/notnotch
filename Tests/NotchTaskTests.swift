@@ -29,6 +29,26 @@ enum NotchTaskTests {
                                                   NotchTask(minutes: 60, text: "c")])
         suite.expect(ordered.map(\.text) == ["a", "b", "c"], "stored order is kept, finished rows included")
 
+        suite.expect(NotchTaskSupport.followingMinutes(after: 20 * 60) == 20 * 60 + 30,
+                     "the next task is half an hour after the last one")
+        suite.expect(NotchTaskSupport.followingMinutes(after: 23 * 60 + 45) == 15, "the next time wraps past midnight")
+
+        let gym = NotchTask(minutes: 22 * 60, text: "gym")
+        let dinner = NotchTask(minutes: 21 * 60, text: "dinner", done: true)
+        let call = NotchTask(minutes: 22 * 60, text: "call")
+        suite.expect(NotchTaskSupport.ordered([gym, dinner, call]).map(\.text) == ["dinner", "gym", "call"],
+                     "rows read by time, ties in the order they were added, finished rows in place")
+
+        let parses: [(String, Bool, Int?)] = [
+            ("8pm", false, 20 * 60), ("8:30p", false, 20 * 60 + 30), ("830pm", false, 20 * 60 + 30),
+            ("8 30 am", true, 8 * 60 + 30), ("20:30", false, 20 * 60 + 30), ("2030", false, 20 * 60 + 30),
+            ("0", false, 0), ("12am", true, 0), ("12pm", false, 12 * 60), ("8", true, 20 * 60), ("8", false, 8 * 60),
+            ("8:5pm", false, nil), ("13pm", false, nil), ("24", false, nil), ("8:60", false, nil),
+            ("", false, nil), ("pm", false, nil), ("gym", false, nil), ("12345", false, nil)]
+        for (input, pm, expected) in parses {
+            suite.expect(NotchTaskSupport.parseTime(input, pm: pm) == expected, "\"\(input)\" parses to \(String(describing: expected))")
+        }
+
         let root = FileManager.default.temporaryDirectory
             .appendingPathComponent("notch-tasks-\(UUID().uuidString)", isDirectory: true)
         defer { try? FileManager.default.removeItem(at: root) }
