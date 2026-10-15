@@ -21,6 +21,7 @@ struct NotchTaskStrings {
     let limitFormat: String
     let loadFailed: String
     let saveFailed: String
+    let reminders: String
 }
 
 extension FeatureStrings {
@@ -43,7 +44,8 @@ extension FeatureStrings {
             markNotDone: "Mark as not done",
             limitFormat: "Up to %d tasks",
             loadFailed: "Tasks could not be read.",
-            saveFailed: "Tasks could not be saved.")
+            saveFailed: "Tasks could not be saved.",
+            reminders: "Task reminders")
         case .ptBR: return NotchTaskStrings(
             title: "Tarefas",
             empty: "Nada planejado ainda",
@@ -61,7 +63,8 @@ extension FeatureStrings {
             markNotDone: "Marcar como não feita",
             limitFormat: "Até %d tarefas",
             loadFailed: "Não foi possível ler as tarefas.",
-            saveFailed: "Não foi possível salvar as tarefas.")
+            saveFailed: "Não foi possível salvar as tarefas.",
+            reminders: "Lembretes de tarefas")
         case .es: return NotchTaskStrings(
             title: "Tareas",
             empty: "Nada planeado todavía",
@@ -79,7 +82,8 @@ extension FeatureStrings {
             markNotDone: "Marcar como pendiente",
             limitFormat: "Hasta %d tareas",
             loadFailed: "No se pudieron leer las tareas.",
-            saveFailed: "No se pudieron guardar las tareas.")
+            saveFailed: "No se pudieron guardar las tareas.",
+            reminders: "Recordatorios de tareas")
         case .sk: return NotchTaskStrings(
             title: "Úlohy",
             empty: "Zatiaľ nič naplánované",
@@ -97,7 +101,8 @@ extension FeatureStrings {
             markNotDone: "Označiť ako nehotové",
             limitFormat: "Najviac %d úloh",
             loadFailed: "Úlohy sa nepodarilo načítať.",
-            saveFailed: "Úlohy sa nepodarilo uložiť.")
+            saveFailed: "Úlohy sa nepodarilo uložiť.",
+            reminders: "Pripomienky úloh")
         case .de: return NotchTaskStrings(
             title: "Aufgaben",
             empty: "Noch nichts geplant",
@@ -115,7 +120,8 @@ extension FeatureStrings {
             markNotDone: "Als offen markieren",
             limitFormat: "Bis zu %d Aufgaben",
             loadFailed: "Die Aufgaben konnten nicht gelesen werden.",
-            saveFailed: "Die Aufgaben konnten nicht gesichert werden.")
+            saveFailed: "Die Aufgaben konnten nicht gesichert werden.",
+            reminders: "Aufgabenerinnerungen")
         case .fr: return NotchTaskStrings(
             title: "Tâches",
             empty: "Rien de prévu pour l’instant",
@@ -133,7 +139,8 @@ extension FeatureStrings {
             markNotDone: "Marquer comme à faire",
             limitFormat: "Jusqu’à %d tâches",
             loadFailed: "Impossible de lire les tâches.",
-            saveFailed: "Impossible d’enregistrer les tâches.")
+            saveFailed: "Impossible d’enregistrer les tâches.",
+            reminders: "Rappels de tâches")
         case .it: return NotchTaskStrings(
             title: "Attività",
             empty: "Ancora niente in programma",
@@ -151,7 +158,8 @@ extension FeatureStrings {
             markNotDone: "Segna come da fare",
             limitFormat: "Fino a %d attività",
             loadFailed: "Impossibile leggere le attività.",
-            saveFailed: "Impossibile salvare le attività.")
+            saveFailed: "Impossibile salvare le attività.",
+            reminders: "Promemoria attività")
         case .ru: return NotchTaskStrings(
             title: "Задачи",
             empty: "Пока ничего не запланировано",
@@ -169,7 +177,8 @@ extension FeatureStrings {
             markNotDone: "Отметить как невыполненную",
             limitFormat: "Не более %d задач",
             loadFailed: "Не удалось прочитать задачи.",
-            saveFailed: "Не удалось сохранить задачи.")
+            saveFailed: "Не удалось сохранить задачи.",
+            reminders: "Напоминания о задачах")
         case .tr: return NotchTaskStrings(
             title: "Görevler",
             empty: "Henüz plan yok",
@@ -187,7 +196,8 @@ extension FeatureStrings {
             markNotDone: "Yapılmadı olarak işaretle",
             limitFormat: "En fazla %d görev",
             loadFailed: "Görevler okunamadı.",
-            saveFailed: "Görevler kaydedilemedi.")
+            saveFailed: "Görevler kaydedilemedi.",
+            reminders: "Görev hatırlatıcıları")
         case .ja: return NotchTaskStrings(
             title: "タスク",
             empty: "まだ予定はありません",
@@ -205,7 +215,8 @@ extension FeatureStrings {
             markNotDone: "未完了にする",
             limitFormat: "最大%d件",
             loadFailed: "タスクを読み込めませんでした。",
-            saveFailed: "タスクを保存できませんでした。")
+            saveFailed: "タスクを保存できませんでした。",
+            reminders: "タスクのリマインダー")
         case .ko: return NotchTaskStrings(
             title: "할 일",
             empty: "아직 계획이 없습니다",
@@ -223,7 +234,8 @@ extension FeatureStrings {
             markNotDone: "미완료로 표시",
             limitFormat: "최대 %d개",
             loadFailed: "할 일을 읽을 수 없습니다.",
-            saveFailed: "할 일을 저장할 수 없습니다.")
+            saveFailed: "할 일을 저장할 수 없습니다.",
+            reminders: "할 일 알림")
         case .uk: return NotchTaskStrings(
             title: "Завдання",
             empty: "Поки нічого не заплановано",
@@ -241,7 +253,8 @@ extension FeatureStrings {
             markNotDone: "Позначити як невиконане",
             limitFormat: "Не більше %d завдань",
             loadFailed: "Не вдалося прочитати завдання.",
-            saveFailed: "Не вдалося зберегти завдання.")
+            saveFailed: "Не вдалося зберегти завдання.",
+            reminders: "Нагадування про завдання")
         case .zhHans: return NotchTaskStrings(
             title: "任务",
             empty: "暂无计划",
@@ -259,7 +272,8 @@ extension FeatureStrings {
             markNotDone: "标记为未完成",
             limitFormat: "最多 %d 项",
             loadFailed: "无法读取任务。",
-            saveFailed: "无法存储任务。")
+            saveFailed: "无法存储任务。",
+            reminders: "任务提醒")
         case .zhTW: return NotchTaskStrings(
             title: "任務",
             empty: "尚無計畫",
@@ -277,7 +291,8 @@ extension FeatureStrings {
             markNotDone: "標示為未完成",
             limitFormat: "最多 %d 項",
             loadFailed: "無法讀取任務。",
-            saveFailed: "無法儲存任務。")
+            saveFailed: "無法儲存任務。",
+            reminders: "任務提醒")
         case .zhHK: return NotchTaskStrings(
             title: "任務",
             empty: "尚未有計劃",
@@ -295,7 +310,8 @@ extension FeatureStrings {
             markNotDone: "標示為未完成",
             limitFormat: "最多 %d 項",
             loadFailed: "無法讀取任務。",
-            saveFailed: "無法儲存任務。")
+            saveFailed: "無法儲存任務。",
+            reminders: "任務提醒")
         }
     }
 }

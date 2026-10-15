@@ -51,6 +51,7 @@ struct NotchSettings: View {
     @AppStorage(DefaultsKey.notchModuleOrder) private var order = ""
     @AppStorage(DefaultsKey.notchVolume) private var volume = true
     @AppStorage(DefaultsKey.notchInputSource) private var inputSource = true
+    @AppStorage(DefaultsKey.notchTaskReminders) private var taskReminders = true
     @AppStorage(DefaultsKey.notchMicrophone) private var microphone = true
     @AppStorage(DefaultsKey.notchBrightness) private var brightness = true
     @AppStorage(DefaultsKey.notchBattery) private var battery = true
@@ -119,7 +120,7 @@ struct NotchSettings: View {
          String(capsuleFitWidth), String(capsuleFitHeight), String(capsuleFitDrop), String(hapticFeedback),
          String(shelfWindow), String(dragReveal), String(captureControls), String(quickPanel), String(appPanel),
          String(hoverExpand), String(hideUntilHover), String(hideInFullscreen), String(coversMenus),
-         display, silhouette, String(hover), hidden, order, String(volume), String(inputSource),
+         display, silhouette, String(hover), hidden, order, String(volume), String(inputSource), String(taskReminders),
          String(brightness), String(keyboardLight),
          String(microphone), String(battery), String(clipboard), String(clipboardWindow),
          String(capture), String(trackChange), captureAction, String(showInCaptures),
@@ -542,9 +543,10 @@ struct NotchSettings: View {
                     && NotchSupport.modules().contains(.clipboard)
                 let capturesAvailable = AppFeature.screenshot.isAvailable && NotchSupport.modules().contains(.captures)
                 let musicAvailable = NotchSupport.modules().contains(.music)
+                let tasksAvailable = NotchSupport.modules().contains(.tasks)
                 let reserves = ![volumeAvailable, brightnessAvailable, keyboardLightAvailable, microphoneAvailable,
                                  batteryAvailable || !hasBattery, accessoriesAvailable, clipboardAvailable, capturesAvailable,
-                                 musicAvailable].allSatisfy { $0 }
+                                 musicAvailable, tasksAvailable].allSatisfy { $0 }
                 LazyVGrid(columns: [GridItem(.adaptive(minimum: 116), spacing: 10)], spacing: 10) {
                     toggleCard(text.volume, symbol: "speaker.wave.2", value: $volume, available: volumeAvailable,
                                reason: AppFeature.mixer.enableReason(l10n), reservesReason: reserves,
@@ -592,6 +594,10 @@ struct NotchSettings: View {
                     // this card never waits on another feature.
                     toggleCard(text.inputSource, symbol: "keyboard", value: $inputSource,
                                available: true, reservesReason: reserves)
+                    toggleCard(FeatureStrings.notchTasks(l10n.language).reminders, symbol: NotchModule.tasks.symbol,
+                               value: $taskReminders, available: tasksAvailable,
+                               reason: pageReason(.tasks, feature: nil), reservesReason: reserves,
+                               unavailableAction: pageAction(.tasks, feature: nil))
                 }
                 if accessoriesEnabled { Text(FeatureStrings.notchActivities(l10n.language).accessoryDescription).font(.caption).foregroundStyle(.secondary) }
                 if enabled, (volume || brightness || keyboardLight), !permissions.accessibility { PermissionRow(kind: .accessibility) }

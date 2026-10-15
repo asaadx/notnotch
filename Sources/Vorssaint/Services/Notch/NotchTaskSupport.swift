@@ -129,6 +129,35 @@ enum NotchTaskSupport {
         return hour * 60 + minute
     }
 
+    /// How late a reminder may still arrive, after sleep or a busy moment;
+    /// anything older stays quiet.
+    static let reminderGrace: TimeInterval = 15 * 60
+    static let reminderPrefix = "com.vorssaint.notch-task."
+
+    /// The task's time on the day of `date`.
+    static func occurrence(of minutes: Int, onDayOf date: Date, calendar: Calendar = .current) -> Date? {
+        let minutes = clampedMinutes(minutes)
+        return calendar.date(bySettingHour: minutes / 60, minute: minutes % 60, second: 0, of: date)
+    }
+
+    /// Tasks still to do whose time came up after `from`, until `to`.
+    static func dueTasks(_ tasks: [NotchTask], from: Date, to: Date, calendar: Calendar = .current) -> [NotchTask] {
+        ordered(tasks).filter { task in
+            guard !task.done, var at = occurrence(of: task.minutes, onDayOf: to, calendar: calendar) else { return false }
+            if at > to { at = calendar.date(byAdding: .day, value: -1, to: at) ?? at }
+            return at > from && at <= to
+        }
+    }
+
+    /// When a task still to do next comes up after `date`, on that day or
+    /// the next.
+    static func nextReminder(_ tasks: [NotchTask], after date: Date, calendar: Calendar = .current) -> Date? {
+        tasks.filter { !$0.done }.compactMap { task -> Date? in
+            guard let today = occurrence(of: task.minutes, onDayOf: date, calendar: calendar) else { return nil }
+            return today > date ? today : calendar.date(byAdding: .day, value: 1, to: today)
+        }.min()
+    }
+
     /// The next whole hour, so a new task starts somewhere sensible.
     static func suggestedMinutes(now: Date, calendar: Calendar = .current) -> Int {
         let parts = calendar.dateComponents([.hour], from: now)

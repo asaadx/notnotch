@@ -19,6 +19,8 @@ struct NotchNoticeView: View {
         case .agents: return notice.symbol.hasPrefix("exclamationmark") ? .orange : notice.agent?.tint ?? .white
         // The timer's notice keeps the orange its strip and page wear.
         case .timer: return .orange
+        // A task's reminder wears the orange its time has in the list.
+        case .tasks: return .orange
         default: return .white
         }
     }

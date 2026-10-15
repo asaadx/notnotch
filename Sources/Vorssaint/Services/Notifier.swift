@@ -32,6 +32,46 @@ enum Notifier {
         post(title: title, body: body, categoryIdentifier: nil, userInfo: [:])
     }
 
+    /// Hands macOS notifications to deliver at a time of day while the app
+    /// is not running, and waits briefly so they are delivered to the
+    /// notification center before a quit goes on.
+    static func schedule(_ reminders: [(identifier: String, title: String, body: String, hour: Int, minute: Int)],
+                         timeout: TimeInterval) {
+        guard !reminders.isEmpty else { return }
+        let center = UNUserNotificationCenter.current()
+        let added = DispatchGroup()
+        added.enter()
+        center.getNotificationSettings { settings in
+            defer { added.leave() }
+            guard settings.authorizationStatus == .authorized
+                || settings.authorizationStatus == .provisional else { return }
+            for reminder in reminders {
+                let content = UNMutableNotificationContent()
+                content.title = reminder.title
+                content.body = reminder.body
+                content.sound = .default
+                let trigger = UNCalendarNotificationTrigger(
+                    dateMatching: DateComponents(hour: reminder.hour, minute: reminder.minute), repeats: false)
+                added.enter()
+                center.add(UNNotificationRequest(identifier: reminder.identifier, content: content, trigger: trigger)) { error in
+                    if let error {
+                        log.error("notification scheduling failed: \(error.localizedDescription, privacy: .public)")
+                    }
+                    added.leave()
+                }
+            }
+        }
+        _ = added.wait(timeout: .now() + timeout)
+    }
+
+    static func removePending(withPrefix prefix: String) {
+        let center = UNUserNotificationCenter.current()
+        center.getPendingNotificationRequests { requests in
+            let identifiers = requests.map(\.identifier).filter { $0.hasPrefix(prefix) }
+            if !identifiers.isEmpty { center.removePendingNotificationRequests(withIdentifiers: identifiers) }
+        }
+    }
+
     static func postWhatsAppOrganization(title: String,
                                          body: String,
                                          undoTitle: String,

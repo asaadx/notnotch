@@ -905,6 +905,7 @@ enum DefaultsKey {
     static let notchQuickAccessThird = "notchQuickAccessThird"
     static let notchVolume = "notchVolume"
     static let notchInputSource = "notchInputSource"
+    static let notchTaskReminders = "notchTaskReminders"
     static let notchMicrophone = "notchMicrophone"
     static let notchBrightness = "notchBrightness"
     static let notchBattery = "notchBattery"
@@ -1489,6 +1490,7 @@ enum Defaults {
         DefaultsKey.notchQuickAccessLayout: Data(),
         DefaultsKey.notchVolume: true,
         DefaultsKey.notchInputSource: true,
+        DefaultsKey.notchTaskReminders: true,
         DefaultsKey.notchMicrophone: true,
         DefaultsKey.notchBrightness: true,
         DefaultsKey.notchBattery: true,

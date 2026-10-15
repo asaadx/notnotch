@@ -49,6 +49,29 @@ enum NotchTaskTests {
             suite.expect(NotchTaskSupport.parseTime(input, pm: pm) == expected, "\"\(input)\" parses to \(String(describing: expected))")
         }
 
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: "UTC")!
+        let day = Date(timeIntervalSince1970: 1_700_000_000)
+        func at(_ minutes: Int, days: Int = 0) -> Date {
+            calendar.date(byAdding: .day, value: days,
+                          to: NotchTaskSupport.occurrence(of: minutes, onDayOf: day, calendar: calendar)!)!
+        }
+        let reminded = [NotchTask(minutes: 17 * 60, text: "gym"), NotchTask(minutes: 9 * 60, text: "walk", done: true),
+                        NotchTask(minutes: 8 * 60, text: "coffee")]
+        suite.expect(NotchTaskSupport.nextReminder(reminded, after: at(12 * 60), calendar: calendar) == at(17 * 60),
+                     "the next reminder is the next task still to do today")
+        suite.expect(NotchTaskSupport.nextReminder(reminded, after: at(18 * 60), calendar: calendar) == at(8 * 60, days: 1),
+                     "after the last one, the next is tomorrow's first; a finished task is skipped")
+        suite.expect(NotchTaskSupport.nextReminder([], after: at(0), calendar: calendar) == nil, "no tasks, no reminder")
+        suite.expect(NotchTaskSupport.dueTasks(reminded, from: at(16 * 60 + 59), to: at(17 * 60), calendar: calendar)
+                        .map(\.text) == ["gym"], "a reminder is due once its time arrives")
+        suite.expect(NotchTaskSupport.dueTasks(reminded, from: at(17 * 60), to: at(17 * 60 + 1), calendar: calendar).isEmpty,
+                     "a reminder already given is not given again")
+        suite.expect(NotchTaskSupport.dueTasks(reminded, from: at(8 * 60 + 50), to: at(9 * 60 + 5), calendar: calendar).isEmpty,
+                     "a finished task is never due")
+        suite.expect(NotchTaskSupport.dueTasks(reminded, from: at(23 * 60 + 55, days: -1), to: at(8 * 60 + 5), calendar: calendar)
+                        .map(\.text) == ["coffee"], "a check across midnight finds the morning's task")
+
         let root = FileManager.default.temporaryDirectory
             .appendingPathComponent("notch-tasks-\(UUID().uuidString)", isDirectory: true)
         defer { try? FileManager.default.removeItem(at: root) }
