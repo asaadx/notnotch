@@ -45,16 +45,6 @@ struct NotchTasksView: View {
         picking != nil || editingID != nil || !draftText.isEmpty
     }
 
-    /// Times start at the row's edge in one column as wide as the widest of
-    /// them, so every dash and every task starts at the same place.
-    private var timeColumnWidth: CGFloat {
-        let labels = tasks.tasks.map(\.minutes) + [draftMinutes]
-        let widest = labels.map {
-            (NotchTaskSupport.timeLabel($0) as NSString).size(withAttributes: [.font: Self.timeFont]).width
-        }.max() ?? 0
-        return widest.rounded(.up) + 1
-    }
-
     var body: some View {
         Group {
             if tasks.loadFailed {
@@ -199,7 +189,7 @@ struct NotchTasksView: View {
             Text(NotchTaskSupport.timeLabel(minutes))
                 .font(Font(Self.timeFont))
                 .foregroundStyle(.orange)
-                .frame(width: timeColumnWidth, alignment: .leading)
+                .fixedSize()
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
