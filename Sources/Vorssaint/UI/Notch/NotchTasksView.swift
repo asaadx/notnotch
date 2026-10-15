@@ -28,6 +28,7 @@ struct NotchTasksView: View {
     private static let rowHeight: CGFloat = 28
     private static let fontSize: CGFloat = 14
     private static let timeFont = NSFont.monospacedDigitSystemFont(ofSize: fontSize, weight: .medium)
+    private static let mutedColor = Color.white.opacity(0.4)
 
     private enum Field: Hashable {
         case draft
@@ -111,30 +112,39 @@ struct NotchTasksView: View {
     private func row(_ task: NotchTask) -> some View {
         let editing = editingID == task.id
         let showsActions = !editing && hoveredID == task.id
+        let struck = task.done && !editing
         return HStack(alignment: .firstTextBaseline, spacing: 6) {
-            timeButton(task.minutes) {
-                openPicker(id: task.id, minutes: task.minutes)
-            }
-            dash
-            if editing {
-                TextField(text.placeholder, text: $editingText)
-                    .textFieldStyle(.plain)
-                    .font(.system(size: Self.fontSize))
-                    .foregroundStyle(.white)
-                    .focused($focus, equals: .edit(task.id))
-                    .onSubmit { finishEditing(task.id) }
-            } else {
-                Button { toggle(task.id) } label: {
-                    NotchStruckText(text: NotchTaskSupport.displayText(task.text), done: task.done,
-                                    fontSize: Self.fontSize)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .contentShape(Rectangle())
+            // The time, the dash and the words are struck as one phrase, and
+            // the empty run after them marks the task too.
+            HStack(alignment: .firstTextBaseline, spacing: 6) {
+                timeButton(task.minutes, muted: struck) {
+                    openPicker(id: task.id, minutes: task.minutes)
                 }
-                .buttonStyle(.plain)
-                .accessibilityLabel(NotchTaskSupport.rowText(task))
-                .accessibilityHint(task.done ? text.markNotDone : text.markDone)
-                .accessibilityAddTraits(task.done ? .isSelected : [])
+                dash(muted: struck)
+                if editing {
+                    TextField(text.placeholder, text: $editingText)
+                        .textFieldStyle(.plain)
+                        .font(.system(size: Self.fontSize))
+                        .foregroundStyle(.white)
+                        .focused($focus, equals: .edit(task.id))
+                        .onSubmit { finishEditing(task.id) }
+                } else {
+                    Button { toggle(task.id) } label: {
+                        Text(NotchTaskSupport.displayText(task.text))
+                            .font(.system(size: Self.fontSize))
+                            .lineLimit(1)
+                            .foregroundStyle(struck ? Self.mutedColor : .white)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(NotchTaskSupport.rowText(task))
+                    .accessibilityHint(task.done ? text.markNotDone : text.markDone)
+                    .accessibilityAddTraits(task.done ? .isSelected : [])
+                }
             }
+            .overlay(alignment: .leading) { strike(struck) }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .contentShape(Rectangle())
+            .onTapGesture { if !editing { toggle(task.id) } }
             if showsActions {
                 HStack(spacing: 0) {
                     rowAction("pencil", title: text.edit) { beginEditing(task) }
@@ -165,7 +175,7 @@ struct NotchTasksView: View {
             timeButton(draftMinutes) {
                 openPicker(id: nil, minutes: draftMinutes)
             }
-            dash
+            dash()
             TextField(tasks.canAdd ? text.placeholder : String(format: text.limitFormat, NotchTaskSupport.maximumCount),
                       text: $draftText)
                 .textFieldStyle(.plain)
@@ -184,11 +194,11 @@ struct NotchTasksView: View {
         .modifier(NotchControlSurface(cornerRadius: 10, interactive: false))
     }
 
-    private func timeButton(_ minutes: Int, action: @escaping () -> Void) -> some View {
+    private func timeButton(_ minutes: Int, muted: Bool = false, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Text(NotchTaskSupport.timeLabel(minutes))
                 .font(Font(Self.timeFont))
-                .foregroundStyle(.orange)
+                .foregroundStyle(muted ? Self.mutedColor : .orange)
                 .fixedSize()
                 .contentShape(Rectangle())
         }
@@ -198,11 +208,21 @@ struct NotchTasksView: View {
         .accessibilityValue(NotchTaskSupport.timeLabel(minutes))
     }
 
-    private var dash: some View {
+    private func dash(muted: Bool = false) -> some View {
         Text("—")
             .font(.system(size: Self.fontSize))
-            .foregroundStyle(.white)
+            .foregroundStyle(muted ? Self.mutedColor : .white)
             .accessibilityHidden(true)
+    }
+
+    /// A line drawn across a done task from the leading edge, and drawn back
+    /// as it is undone.
+    private func strike(_ done: Bool) -> some View {
+        Capsule()
+            .fill(Self.mutedColor)
+            .frame(height: 1.5)
+            .scaleEffect(x: done ? 1 : 0, anchor: .leading)
+            .allowsHitTesting(false)
     }
 
     private func rowAction(_ symbol: String, title: String, action: @escaping () -> Void) -> some View {
@@ -302,7 +322,7 @@ struct NotchTasksView: View {
         }
         guard added else { return }
         draftText = ""
-        setDraftMinutes(NotchTaskSupport.followingMinutes(after: minutes))
+        setDraftMinutes(tasks.draftMinutes ?? NotchTaskSupport.followingMinutes(after: minutes))
         focus = .draft
     }
 
@@ -330,26 +350,5 @@ struct NotchTasksView: View {
     private func delete(_ id: UUID) {
         if editingID == id { editingID = nil }
         withAnimation(reduceMotion ? nil : .easeOut(duration: 0.18)) { tasks.delete(id) }
-    }
-}
-
-/// A task's words with a line drawn across them from the leading edge as it
-/// is done, and drawn back as it is undone.
-private struct NotchStruckText: View {
-    let text: String
-    let done: Bool
-    let fontSize: CGFloat
-
-    var body: some View {
-        Text(text)
-            .font(.system(size: fontSize))
-            .lineLimit(1)
-            .foregroundStyle(.white)
-            .overlay(alignment: .leading) {
-                Capsule()
-                    .fill(.white)
-                    .frame(height: 1.5)
-                    .scaleEffect(x: done ? 1 : 0, anchor: .leading)
-            }
     }
 }
