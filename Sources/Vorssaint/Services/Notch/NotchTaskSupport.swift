@@ -84,6 +84,12 @@ enum NotchTaskSupport {
         (clampedMinutes(minutes) + followingInterval) % day
     }
 
+    /// The next task follows the list's last task by time, not the one just
+    /// added; nil for an empty list.
+    static func followingMinutes(after tasks: [NotchTask]) -> Int? {
+        tasks.map(\.minutes).max().map { followingMinutes(after: $0) }
+    }
+
     /// The list as it reads: by time of day, with tasks at the same time in
     /// the order they were added. Finishing one never moves it.
     static func ordered(_ tasks: [NotchTask]) -> [NotchTask] {

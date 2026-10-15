@@ -32,6 +32,10 @@ enum NotchTaskTests {
         suite.expect(NotchTaskSupport.followingMinutes(after: 20 * 60) == 20 * 60 + 30,
                      "the next task is half an hour after the last one")
         suite.expect(NotchTaskSupport.followingMinutes(after: 23 * 60 + 45) == 15, "the next time wraps past midnight")
+        suite.expect(NotchTaskSupport.followingMinutes(after: [NotchTask(minutes: 21 * 60, text: "late"),
+                                                               NotchTask(minutes: 9 * 60, text: "early")]) == 21 * 60 + 30,
+                     "the next task follows the latest one, not the one added last")
+        suite.expect(NotchTaskSupport.followingMinutes(after: [NotchTask]()) == nil, "an empty list suggests nothing")
 
         let gym = NotchTask(minutes: 22 * 60, text: "gym")
         let dinner = NotchTask(minutes: 21 * 60, text: "dinner", done: true)

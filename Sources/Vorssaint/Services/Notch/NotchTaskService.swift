@@ -41,7 +41,7 @@ final class NotchTaskService: ObservableObject {
     func add(minutes: Int, text: String) -> Bool {
         guard canAdd, let text = NotchTaskSupport.sanitizedText(text) else { return false }
         commit(tasks + [NotchTask(minutes: NotchTaskSupport.clampedMinutes(minutes), text: text)])
-        draftMinutes = NotchTaskSupport.followingMinutes(after: minutes)
+        draftMinutes = NotchTaskSupport.followingMinutes(after: tasks)
         // Asked once, with the first task that could need it.
         if NotchSupport.routes(.tasks) { Notifier.requestPermission() }
         return true
