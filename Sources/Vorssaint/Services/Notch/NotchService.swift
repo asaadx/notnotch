@@ -228,6 +228,7 @@ final class NotchService: ObservableObject {
             || (expanded && !showingSections && selected == .tools && (QuickLauncherService.shared.activeUtility != nil || QuickLauncherService.shared.isEditing))
             || (expanded && !showingSections && selected == .tasks && NotchTaskService.shared.interacting)
             || (expanded && !showingSections && selected == .stickies && NotchStickyService.shared.editing)
+            || (expanded && !showingSections && selected == .videoNotes && NotchVideoNotesService.shared.interacting)
     }
     /// Up and measuring its display. Settings previews read the island's
     /// size only then.
@@ -4097,6 +4098,8 @@ final class NotchService: ObservableObject {
         let musicWanted = modules.contains(.music) && ((expanded && (selected == .music || (selected == .controls && NotchSupport.controls().contains(.music)))
             && !showingAppPanel && !showingSections && !showingCommandBar)
             || (!hiddenUntilHover && (NotchSupport.watchesMusicActivity() || NotchSupport.routes(.track))))
+            // Video Notes names the video and its time from Now Playing.
+            || (expanded && selected == .videoNotes && !showingAppPanel && !showingSections && !showingCommandBar)
         if musicWanted { NotchMusicService.shared.start() } else { NotchMusicService.shared.stop() }
         let needs = expanded && selected == .system && selectedMetric == nil && modules.contains(.system) && !showingAppPanel
             && !showingSections && !showingCommandBar

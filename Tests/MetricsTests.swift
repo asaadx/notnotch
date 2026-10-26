@@ -114,6 +114,7 @@ struct MetricsTests {
                 NotchTaskTests.run(suite)
                 NotchTodoistTests.run(suite)
                 NotchStickyTests.run(suite)
+                NotchVideoNotesTests.run(suite)
             }),
             ("features", {
                 FeatureCatalogTests.run(suite)

@@ -667,6 +667,7 @@ struct NotchView: View {
             case .watch: NotchWatchView(size: pageSize)
             case .tasks: NotchTasksView(service: service)
             case .stickies: NotchStickiesView(service: service)
+            case .videoNotes: NotchVideoNotesView(service: service)
             }
         }
     }
@@ -971,6 +972,7 @@ extension NotchModule: PanelOrderItem {
         case .watch: return FeatureStrings.notchWatch(language).title
         case .tasks: return FeatureStrings.notchTasks(language).title
         case .stickies: return FeatureStrings.notchStickies(language).title
+        case .videoNotes: return FeatureStrings.notchVideoNotes(language).title
         }
     }
 }

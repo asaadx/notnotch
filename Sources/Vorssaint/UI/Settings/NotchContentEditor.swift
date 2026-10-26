@@ -190,6 +190,7 @@ struct NotchPagePreview: View {
         case .watch: NotchWatchView(size: size)
         case .tasks: NotchTasksView(service: notch)
         case .stickies: NotchStickiesView(service: notch)
+        case .videoNotes: NotchVideoNotesView(service: notch)
         }
     }
 
@@ -387,6 +388,7 @@ extension NotchModule {
         case .watch: return .purple
         case .tasks: return .orange
         case .stickies: return .pink
+        case .videoNotes: return .red
         }
     }
 
