@@ -69,6 +69,7 @@ struct NotchEditorStrings {
     let agentsSummary: String
     let watchSummary: String
     let tasksSummary: String
+    let stickiesSummary: String
 
     func enableFeature(_ title: String) -> String { String(format: enableFeatureFormat, title) }
     func enableSetting(_ title: String) -> String { String(format: enableSettingFormat, title) }
@@ -94,6 +95,7 @@ struct NotchEditorStrings {
         case .agents: return agentsSummary
         case .watch: return watchSummary
         case .tasks: return tasksSummary
+        case .stickies: return stickiesSummary
         }
     }
 }
@@ -166,7 +168,8 @@ extension FeatureStrings {
             scratchpadSummary: "Quick notes that save by themselves.",
             agentsSummary: "Claude Code, Codex, OpenCode and GitHub Copilot usage, limits and costs.",
             watchSummary: "Any part of a window, read live, with an alert when it changes.",
-            tasksSummary: "A short list of what to do and when."
+            tasksSummary: "A short list of what to do and when.",
+            stickiesSummary: "Colorful sticky notes for quick thoughts."
         )
         case .ptBR: return NotchEditorStrings(
             layout: "Layout",
@@ -233,7 +236,8 @@ extension FeatureStrings {
             scratchpadSummary: "Anotações rápidas que se salvam sozinhas.",
             agentsSummary: "Uso, limites e custos do Claude Code, do Codex, do OpenCode e do GitHub Copilot.",
             watchSummary: "Qualquer parte de uma janela, lida ao vivo, com aviso quando mudar.",
-            tasksSummary: "Uma lista curta do que fazer e quando."
+            tasksSummary: "Uma lista curta do que fazer e quando.",
+            stickiesSummary: "Notas adesivas coloridas para ideias rápidas."
         )
         case .es: return NotchEditorStrings(
             layout: "Diseño",
@@ -300,7 +304,8 @@ extension FeatureStrings {
             scratchpadSummary: "Notas rápidas que se guardan solas.",
             agentsSummary: "Uso, límites y costes de Claude Code, Codex, OpenCode y GitHub Copilot.",
             watchSummary: "Cualquier parte de una ventana, leída en directo, con aviso cuando cambie.",
-            tasksSummary: "Una lista breve de qué hacer y cuándo."
+            tasksSummary: "Una lista breve de qué hacer y cuándo.",
+            stickiesSummary: "Notas adhesivas de colores para ideas rápidas."
         )
         case .sk: return NotchEditorStrings(
             layout: "Rozloženie",
@@ -367,7 +372,8 @@ extension FeatureStrings {
             scratchpadSummary: "Rýchle poznámky, ktoré sa ukladajú samy.",
             agentsSummary: "Využitie, limity a náklady Claude Code, Codexu, OpenCode a GitHub Copilot.",
             watchSummary: "Ľubovoľná časť okna čítaná naživo s upozornením, keď sa zmení.",
-            tasksSummary: "Krátky zoznam, čo a kedy urobiť."
+            tasksSummary: "Krátky zoznam, čo a kedy urobiť.",
+            stickiesSummary: "Farebné lepiace poznámky pre rýchle myšlienky."
         )
         case .de: return NotchEditorStrings(
             layout: "Layout",
@@ -434,7 +440,8 @@ extension FeatureStrings {
             scratchpadSummary: "Schnelle Notizen, die sich selbst sichern.",
             agentsSummary: "Nutzung, Limits und Kosten von Claude Code, Codex, OpenCode und GitHub Copilot.",
             watchSummary: "Ein beliebiger Teil eines Fensters, live gelesen, mit Hinweis bei Änderungen.",
-            tasksSummary: "Eine kurze Liste, was wann zu tun ist."
+            tasksSummary: "Eine kurze Liste, was wann zu tun ist.",
+            stickiesSummary: "Bunte Haftnotizen für schnelle Gedanken."
         )
         case .fr: return NotchEditorStrings(
             layout: "Disposition",
@@ -501,7 +508,8 @@ extension FeatureStrings {
             scratchpadSummary: "Des notes rapides qui s’enregistrent seules.",
             agentsSummary: "Utilisation, limites et coûts de Claude Code, Codex, OpenCode et GitHub Copilot.",
             watchSummary: "N’importe quelle partie d’une fenêtre, lue en direct, avec une alerte quand elle change.",
-            tasksSummary: "Une courte liste de quoi faire et quand."
+            tasksSummary: "Une courte liste de quoi faire et quand.",
+            stickiesSummary: "Des post-it colorés pour les idées du moment."
         )
         case .it: return NotchEditorStrings(
             layout: "Layout",
@@ -568,7 +576,8 @@ extension FeatureStrings {
             scratchpadSummary: "Note veloci che si salvano da sole.",
             agentsSummary: "Uso, limiti e costi di Claude Code, Codex, OpenCode e GitHub Copilot.",
             watchSummary: "Qualsiasi parte di una finestra, letta dal vivo, con un avviso quando cambia.",
-            tasksSummary: "Un breve elenco di cosa fare e quando."
+            tasksSummary: "Un breve elenco di cosa fare e quando.",
+            stickiesSummary: "Note adesive colorate per i pensieri al volo."
         )
         case .ru: return NotchEditorStrings(
             layout: "Макет",
@@ -635,7 +644,8 @@ extension FeatureStrings {
             scratchpadSummary: "Быстрые заметки, которые сохраняются сами.",
             agentsSummary: "Использование, лимиты и стоимость Claude Code, Codex, OpenCode и GitHub Copilot.",
             watchSummary: "Любая часть окна, читаемая вживую, с оповещением об изменениях.",
-            tasksSummary: "Короткий список дел со временем."
+            tasksSummary: "Короткий список дел со временем.",
+            stickiesSummary: "Цветные стикеры для быстрых мыслей."
         )
         case .tr: return NotchEditorStrings(
             layout: "Yerleşim",
@@ -702,7 +712,8 @@ extension FeatureStrings {
             scratchpadSummary: "Kendi kendine kaydedilen hızlı notlar.",
             agentsSummary: "Claude Code, Codex, GitHub Copilot ve OpenCode kullanımı, sınırları ve maliyetleri.",
             watchSummary: "Bir pencerenin herhangi bir bölümü, canlı okunur ve değişince haber verilir.",
-            tasksSummary: "Ne zaman ne yapılacağına dair kısa bir liste."
+            tasksSummary: "Ne zaman ne yapılacağına dair kısa bir liste.",
+            stickiesSummary: "Hızlı düşünceler için renkli yapışkan notlar."
         )
         case .ja: return NotchEditorStrings(
             layout: "レイアウト",
@@ -769,7 +780,8 @@ extension FeatureStrings {
             scratchpadSummary: "自動で保存されるクイックメモ。",
             agentsSummary: "Claude Code、Codex、OpenCode、GitHub Copilotの使用量、上限、コスト。",
             watchSummary: "ウインドウの好きな部分をライブで読み取り、変化したら知らせます。",
-            tasksSummary: "やることと時刻の短いリスト。"
+            tasksSummary: "やることと時刻の短いリスト。",
+            stickiesSummary: "ちょっとしたメモのためのカラフルな付箋。"
         )
         case .ko: return NotchEditorStrings(
             layout: "레이아웃",
@@ -836,7 +848,8 @@ extension FeatureStrings {
             scratchpadSummary: "저절로 저장되는 빠른 메모.",
             agentsSummary: "Claude Code, Codex, OpenCode, GitHub Copilot의 사용량, 한도, 비용.",
             watchSummary: "윈도우의 원하는 부분을 실시간으로 읽고 바뀌면 알려 줍니다.",
-            tasksSummary: "무엇을 언제 할지 적는 짧은 목록."
+            tasksSummary: "무엇을 언제 할지 적는 짧은 목록.",
+            stickiesSummary: "빠른 생각을 위한 알록달록한 스티커 메모."
         )
         case .zhHans: return NotchEditorStrings(
             layout: "布局",
@@ -903,7 +916,8 @@ extension FeatureStrings {
             scratchpadSummary: "自动保存的快速笔记。",
             agentsSummary: "Claude Code、Codex、OpenCode 和 GitHub Copilot 的用量、限额和费用。",
             watchSummary: "实时读取窗口的任意部分，变化时提醒你。",
-            tasksSummary: "简短的待办清单，附带时间。"
+            tasksSummary: "简短的待办清单，附带时间。",
+            stickiesSummary: "随手记下想法的彩色便签。"
         )
         case .zhTW: return NotchEditorStrings(
             layout: "佈局",
@@ -970,7 +984,8 @@ extension FeatureStrings {
             scratchpadSummary: "自動儲存的快速筆記。",
             agentsSummary: "Claude Code、Codex、OpenCode 和 GitHub Copilot 的用量、限額和費用。",
             watchSummary: "即時讀取視窗的任何部分，變化時提醒你。",
-            tasksSummary: "簡短的待辦清單，附帶時間。"
+            tasksSummary: "簡短的待辦清單，附帶時間。",
+            stickiesSummary: "隨手記下想法的彩色便條紙。"
         )
         case .zhHK: return NotchEditorStrings(
             layout: "佈局",
@@ -1037,7 +1052,8 @@ extension FeatureStrings {
             scratchpadSummary: "自動儲存的快速筆記。",
             agentsSummary: "Claude Code、Codex、OpenCode 和 GitHub Copilot 的用量、限額和費用。",
             watchSummary: "即時讀取視窗的任何部分，變化時提醒你。",
-            tasksSummary: "簡短的待辦清單，附帶時間。"
+            tasksSummary: "簡短的待辦清單，附帶時間。",
+            stickiesSummary: "隨手記下想法的彩色便條紙。"
         )
         case .uk: return NotchEditorStrings(
             layout: "Розкладка",
@@ -1104,7 +1120,8 @@ extension FeatureStrings {
             scratchpadSummary: "Швидкі нотатки, що зберігаються автоматично.",
             agentsSummary: "Використання Claude Code, Codex, OpenCode і GitHub Copilot, ліміти й витрати.",
             watchSummary: "Будь-яка частина вікна, яку читають наживо, зі сповіщенням про зміни.",
-            tasksSummary: "Короткий список справ із часом."
+            tasksSummary: "Короткий список справ із часом.",
+            stickiesSummary: "Кольорові стікери для швидких думок."
         )
         }
     }

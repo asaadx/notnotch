@@ -4,30 +4,6 @@
 import CoreGraphics
 import Foundation
 
-/// The cards the AI page can show, in the order a person arranges them. Raw
-/// values are stored in the saved order, so cases are never renamed.
-enum NotchAgentCard: String, CaseIterable, Identifiable {
-    case limits, spend, live, trend, models, projects, activity, resets
-
-    var id: String { rawValue }
-
-    var symbol: String {
-        switch self {
-        case .limits: return "gauge.with.dots.needle.33percent"
-        case .spend: return "dollarsign.circle"
-        case .live: return "waveform.path.ecg"
-        case .trend: return "chart.bar.xaxis"
-        case .models: return "cpu"
-        case .projects: return "folder"
-        case .activity: return "square.grid.3x3.fill"
-        case .resets: return "arrow.counterclockwise.circle"
-        }
-    }
-
-    /// Charts need the island's width; everything else pairs up.
-    var fullWidth: Bool { self == .trend || self == .activity }
-}
-
 /// What the closed island shows beside the camera while an agent works.
 enum NotchAgentReadout: String, CaseIterable, Identifiable {
     case elapsed, tokens, cost, limit
@@ -47,13 +23,6 @@ enum NotchAgentLimitDisplay: String, CaseIterable, Identifiable {
 enum NotchAgentLimitFocus: String, CaseIterable, Identifiable {
     case mostUsed, session, weekly
     var id: String { rawValue }
-}
-
-struct NotchAgentTile: Identifiable, Equatable {
-    let card: NotchAgentCard
-    /// The account a limits card belongs to.
-    let provider: AgentProvider?
-    var id: String { card.rawValue + (provider.map { "." + $0.rawValue } ?? "") }
 }
 
 enum NotchAgentSupport {
@@ -89,28 +58,6 @@ enum NotchAgentSupport {
         case .opencode: return DefaultsKey.notchAgentsOpenCode
         case .copilot: return DefaultsKey.notchAgentsCopilot
         }
-    }
-
-    /// Every card in the saved order; cards added later join at the end.
-    static func orderedCards(in defaults: UserDefaults = .standard) -> [NotchAgentCard] {
-        let stored = (defaults.string(forKey: DefaultsKey.notchAgentsCardOrder) ?? "")
-            .split(separator: ",").compactMap { NotchAgentCard(rawValue: String($0)) }
-        var seen = Set<NotchAgentCard>()
-        return (stored + NotchAgentCard.allCases).filter { seen.insert($0).inserted }
-    }
-
-    static func hiddenCards(in defaults: UserDefaults = .standard) -> Set<NotchAgentCard> {
-        Set((defaults.string(forKey: DefaultsKey.notchAgentsHiddenCards) ?? "")
-            .split(separator: ",").compactMap { NotchAgentCard(rawValue: String($0)) })
-    }
-
-    static func cards(in defaults: UserDefaults = .standard) -> [NotchAgentCard] {
-        let hidden = hiddenCards(in: defaults)
-        return orderedCards(in: defaults).filter { !hidden.contains($0) }
-    }
-
-    static func period(in defaults: UserDefaults = .standard) -> AgentPeriod {
-        AgentPeriod(rawValue: defaults.string(forKey: DefaultsKey.notchAgentsPeriod) ?? "") ?? .today
     }
 
     static func limitDisplay(in defaults: UserDefaults = .standard) -> NotchAgentLimitDisplay {
@@ -228,52 +175,46 @@ enum NotchAgentSupport {
 
     // MARK: Layout
 
-    static let spacing: CGFloat = 10
-    static let cardHeight: CGFloat = 96
-    static let chartHeight: CGFloat = 118
-    /// Below this width every card takes a row of its own.
-    static let pairWidth: CGFloat = 390
+    static let headerHeight: CGFloat = 20
+    static let rowHeight: CGFloat = 32
+    static let rowSpacing: CGFloat = 8
+    /// The room between two agents, a hairline in its middle.
+    static let sectionGap: CGFloat = 21
 
-    static func tiles(cards: [NotchAgentCard], providers: [AgentProvider]) -> [NotchAgentTile] {
-        cards.flatMap { card -> [NotchAgentTile] in
-            switch card {
-            case .limits: return providers.filter(\.reportsLimits).map { NotchAgentTile(card: .limits, provider: $0) }
-            // Banked resets belong to a Codex account.
-            case .resets: return providers.contains(.codex) ? [NotchAgentTile(card: .resets, provider: .codex)] : []
-            default: return [NotchAgentTile(card: card, provider: nil)]
+    /// Agents with plan allowances to show; Copilot's logs report none.
+    static func pageProviders(_ providers: [AgentProvider]) -> [AgentProvider] {
+        providers.filter(\.reportsLimits)
+    }
+
+    /// An agent's allowances as the page lists them: the session, then the
+    /// week, then any kept for one model.
+    static func windows(_ snapshot: AgentUsageSnapshot, provider: AgentProvider, now: Date) -> [AgentLimitWindow] {
+        func rank(_ window: AgentLimitWindow) -> Int {
+            switch window.kind {
+            case .session: return 0
+            case .weekly: return window.scope == nil ? 1 : 2
+            case .other: return 3
             }
         }
+        let all = (snapshot.limits[provider]?.windows ?? []).map { AgentLimitSupport.current($0, at: now) }
+        return all.enumerated().sorted { (rank($0.element), $0.offset) < (rank($1.element), $1.offset) }.map(\.element)
     }
 
-    /// Cards pair up in reading order; a chart, or a card left without a
-    /// partner, takes the whole row.
-    static func rows(_ tiles: [NotchAgentTile], width: CGFloat) -> [[NotchAgentTile]] {
-        let pairs = width >= pairWidth
-        var rows: [[NotchAgentTile]] = []
-        var waiting: NotchAgentTile?
-        for tile in tiles {
-            if tile.card.fullWidth || !pairs {
-                if let waiting { rows.append([waiting]) }
-                waiting = nil
-                rows.append([tile])
-            } else if let partner = waiting {
-                rows.append([partner, tile])
-                waiting = nil
-            } else {
-                waiting = tile
-            }
-        }
-        if let waiting { rows.append([waiting]) }
-        return rows
+    /// One row per allowance, or one saying why there are none yet, and
+    /// Codex's banked resets below its own.
+    static func rowCount(_ snapshot: AgentUsageSnapshot, provider: AgentProvider, now: Date) -> Int {
+        max(1, windows(snapshot, provider: provider, now: now).count) + (provider == .codex ? 1 : 0)
     }
 
-    static func height(of row: [NotchAgentTile]) -> CGFloat {
-        row.contains { $0.card.fullWidth } ? chartHeight : cardHeight
+    static func sectionHeight(rows: Int) -> CGFloat {
+        headerHeight + CGFloat(rows) * (rowSpacing + rowHeight)
     }
 
-    static func contentHeight(_ rows: [[NotchAgentTile]]) -> CGFloat {
-        guard !rows.isEmpty else { return 0 }
-        return rows.map(height).reduce(0, +) + spacing * CGFloat(rows.count - 1)
+    static func contentHeight(_ snapshot: AgentUsageSnapshot, providers: [AgentProvider], now: Date) -> CGFloat {
+        let shown = pageProviders(providers)
+        guard !shown.isEmpty else { return 0 }
+        return shown.map { sectionHeight(rows: rowCount(snapshot, provider: $0, now: now)) }.reduce(0, +)
+            + sectionGap * CGFloat(shown.count - 1)
     }
 }
 

@@ -695,8 +695,14 @@ final class AgentUsageService: ObservableObject {
         // Claude Code's own first request can place the session's start.
         let start = AgentClaudeAppUsage.sessionStart(store.records, samples: claudeAppSamples,
                                                      organization: claudeOrganization)
+        // Claude Code's own reading is fuller; it stands until the app's is newer and it has aged.
+        if let current = store.limits[.claude], current.source == .account,
+           now.timeIntervalSince(current.observedAt) < AgentClaudeCodeUsage.precedence {
+            return
+        }
         if let limits = AgentClaudeAppUsage.limits(from: claudeAppSamples, now: now, sessionStart: start,
-                                                   organization: claudeOrganization) {
+                                                   organization: claudeOrganization),
+           store.limits[.claude].map({ $0.source != .account || $0.observedAt <= limits.observedAt }) ?? true {
             store.setLimits(limits)
         } else if store.limits[.claude]?.source == .claudeApp {
             store.clearLimits(.claude)

@@ -24,56 +24,6 @@ func agentLimitTint(_ provider: AgentProvider, usedFraction: Double) -> Color {
     return provider.tint
 }
 
-/// A card on the AI page: the same surface as the island's system cards.
-struct NotchAgentCardChrome<Content: View>: View {
-    @ViewBuilder let content: Content
-
-    var body: some View {
-        content
-            .padding(.horizontal, 12)
-            .padding(.vertical, 10)
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-            .modifier(NotchControlSurface(cornerRadius: 18, interactive: false))
-    }
-}
-
-struct NotchAgentCardHeader<Accessory: View>: View {
-    let title: String
-    let symbol: String
-    var tint: Color = .secondary
-    /// A card about one agent wears its mark instead of the symbol.
-    var provider: AgentProvider? = nil
-    @ViewBuilder var accessory: Accessory
-
-    var body: some View {
-        HStack(spacing: 6) {
-            if let provider {
-                // A mark is finer than a symbol and needs more room to read.
-                NotchAgentMark(provider: provider, size: 13, tint: tint)
-                    .frame(width: 17, height: 17)
-            } else {
-                Image(systemName: symbol)
-                    .font(.system(size: 10, weight: .semibold))
-                    .foregroundStyle(tint)
-                    .frame(width: 13)
-            }
-            Text(title)
-                .font(.system(size: 10.5, weight: .semibold))
-                .foregroundStyle(.white.opacity(0.9))
-                .lineLimit(1)
-            Spacer(minLength: 4)
-            accessory
-        }
-        .frame(height: 17)
-    }
-}
-
-extension NotchAgentCardHeader where Accessory == EmptyView {
-    init(title: String, symbol: String, tint: Color = .secondary) {
-        self.init(title: title, symbol: symbol, tint: tint) { EmptyView() }
-    }
-}
-
 /// A capsule meter with a tick where spending would be if it were spread
 /// evenly across the window: a fill past the tick is ahead of pace.
 struct NotchAgentMeter: View {
@@ -150,7 +100,7 @@ struct NotchAgentGlyph: View {
 
     var body: some View {
         NotchAgentGlyphBridge(provider: provider, size: size, animates: working && !reduceMotion)
-            // Room for the widest mark, the Claude one, drawn past its size.
+            // Room for the marks, drawn past their size.
             .frame(width: size * 1.45 + 1, height: size * 1.45 + 1)
             .accessibilityHidden(true)
             .allowsHitTesting(false)
@@ -194,146 +144,18 @@ private struct NotchAgentGlyphBridge: NSViewRepresentable {
             markSize = size
             tint = NSColor(provider.tint)
         }
-        view.configureGlyph(image: image, size: markSize, tint: tint, animates: animates)
+        // Claude's spark holds still and shimmers; a swelling spark read as a distraction.
+        view.configureGlyph(image: image, size: markSize, tint: tint, animates: animates,
+                            shimmers: provider == .claude)
     }
     static func dismantleNSView(_ view: NotchAgentAnimationView, coordinator: ()) { view.stop() }
 }
 
-/// Stacked bars, one per bucket, each split by agent. Hovering a bar reports
-/// it so the card can name the day and its value.
-struct NotchAgentBars: View {
-    let buckets: [AgentBucket]
-    let providers: [AgentProvider]
-    let byCost: Bool
-    @Binding var hovered: Date?
-
-    var body: some View {
-        let values = buckets.map { bucket in providers.map { bucket.byProvider[$0]?.weight(byCost: byCost) ?? 0 } }
-        let peak = max(values.map { $0.reduce(0, +) }.max() ?? 0, .leastNonzeroMagnitude)
-        GeometryReader { proxy in
-            let count = CGFloat(max(1, buckets.count))
-            let gap: CGFloat = count > 24 ? 2 : 4
-            let width = max(1, (proxy.size.width - gap * (count - 1)) / count)
-            HStack(alignment: .bottom, spacing: gap) {
-                ForEach(Array(buckets.enumerated()), id: \.element.id) { index, bucket in
-                    let parts = values[index]
-                    let total = parts.reduce(0, +)
-                    VStack(spacing: 0) {
-                        Spacer(minLength: 0)
-                        if total <= 0 {
-                            Capsule().fill(.white.opacity(0.1)).frame(height: 2)
-                        } else {
-                            VStack(spacing: 0) {
-                                ForEach(providers.indices.reversed(), id: \.self) { slot in
-                                    if parts[slot] > 0 {
-                                        Rectangle()
-                                            .fill(providers[slot].tint.opacity(hovered == nil || hovered == bucket.start ? 0.95 : 0.5))
-                                            .frame(height: max(1, proxy.size.height * parts[slot] / peak))
-                                    }
-                                }
-                            }
-                            .clipShape(RoundedRectangle(cornerRadius: min(3, width / 2), style: .continuous))
-                        }
-                    }
-                    .frame(width: width, height: proxy.size.height)
-                    .contentShape(Rectangle())
-                    .onHover { inside in
-                        if inside { hovered = bucket.start } else if hovered == bucket.start { hovered = nil }
-                    }
-                }
-            }
-        }
-        .accessibilityHidden(true)
-    }
-}
-
-/// Thirteen weeks of activity, a column a week, darker cells for quieter days.
-struct NotchAgentHeatmap: View {
-    let days: [AgentBucket]
-    let byCost: Bool
-    @Binding var hovered: Date?
-    var calendar: Calendar = .autoupdatingCurrent
-    static let spacing: CGFloat = 2.5
-
-    /// Square cells as tall as seven rows allow, across every week shown.
-    static func width(height: CGFloat, days: [AgentBucket], calendar: Calendar = .autoupdatingCurrent) -> CGFloat {
-        let weeks = CGFloat(Self.columns(days, calendar: calendar).count)
-        let cell = max(1, (height - spacing * 6) / 7)
-        return max(0, weeks * cell + max(0, weeks - 1) * spacing)
-    }
-
-    var body: some View {
-        GeometryReader { proxy in
-            let columns = Self.columns(days, calendar: calendar)
-            let spacing = Self.spacing
-            let cell = min((proxy.size.height - spacing * 6) / 7,
-                           (proxy.size.width - spacing * CGFloat(max(0, columns.count - 1))) / CGFloat(max(1, columns.count)))
-            let levels = thresholds
-            HStack(alignment: .top, spacing: spacing) {
-                ForEach(Array(columns.enumerated()), id: \.offset) { _, week in
-                    VStack(spacing: spacing) {
-                        ForEach(0..<7, id: \.self) { row in
-                            if let day = week[row] {
-                                let value = day.total.weight(byCost: byCost)
-                                RoundedRectangle(cornerRadius: min(2.5, cell / 3), style: .continuous)
-                                    .fill(.white.opacity(opacity(value, levels: levels)))
-                                    .overlay {
-                                        if hovered == day.start || calendar.isDateInToday(day.start) {
-                                            RoundedRectangle(cornerRadius: min(2.5, cell / 3), style: .continuous)
-                                                .strokeBorder(.white.opacity(hovered == day.start ? 0.9 : 0.45), lineWidth: 1)
-                                        }
-                                    }
-                                    .frame(width: cell, height: cell)
-                                    .contentShape(Rectangle())
-                                    .onHover { inside in
-                                        if inside { hovered = day.start } else if hovered == day.start { hovered = nil }
-                                    }
-                            } else {
-                                Color.clear.frame(width: cell, height: cell)
-                            }
-                        }
-                    }
-                }
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
-        }
-        .accessibilityHidden(true)
-    }
-
-    /// Days laid into weeks that start on the reader's first weekday.
-    static func columns(_ days: [AgentBucket], calendar: Calendar) -> [[AgentBucket?]] {
-        var weeks: [[AgentBucket?]] = []
-        var current = [AgentBucket?](repeating: nil, count: 7)
-        for day in days {
-            let weekday = (calendar.component(.weekday, from: day.start) - calendar.firstWeekday + 7) % 7
-            if weekday == 0, current.contains(where: { $0 != nil }) {
-                weeks.append(current)
-                current = [AgentBucket?](repeating: nil, count: 7)
-            }
-            current[weekday] = day
-        }
-        if current.contains(where: { $0 != nil }) { weeks.append(current) }
-        return weeks
-    }
-
-    /// Quartiles of the active days, so one heavy day does not wash out the rest.
-    private var thresholds: [Double] {
-        let values = days.map { $0.total.weight(byCost: byCost) }.filter { $0 > 0 }.sorted()
-        guard !values.isEmpty else { return [] }
-        return [0.25, 0.5, 0.75].map { values[min(values.count - 1, Int(Double(values.count) * $0))] }
-    }
-
-    private func opacity(_ value: Double, levels: [Double]) -> Double {
-        guard value > 0 else { return 0.07 }
-        let level = levels.filter { value > $0 }.count
-        return [0.28, 0.45, 0.65, 0.9][min(3, level)]
-    }
-}
-
-/// Each agent's own mark, taken from its maker's app on this Mac: the
-/// monochrome image the app shows in the menu bar, or else the app's icon.
-/// None of that artwork ships with Vorssaint, so a Mac without the app
-/// keeps a symbol. Looked up once; the strip redraws every second.
+/// Each agent's own mark. Claude Code and Codex ship theirs with Vorssaint
+/// (from Lobe Icons, MIT), since their makers' apps show other products'
+/// marks. The rest come from the maker's app on this Mac: the monochrome
+/// image it shows in the menu bar, or else its icon, and a Mac without the
+/// app keeps a symbol. Looked up once; the strip redraws every second.
 enum AgentMarks {
     enum Mark {
         /// Drawn in the agent's color, like the symbol it replaces.
@@ -351,6 +173,12 @@ enum AgentMarks {
     }
 
     private static func lookUp(_ provider: AgentProvider) -> Mark? {
+        if let name = provider.bundledMarkName,
+           let url = Bundle.main.url(forResource: name, withExtension: "svg", subdirectory: "Images"),
+           let image = NSImage(contentsOf: url) {
+            image.isTemplate = true
+            return .template(image)
+        }
         for identifier in provider.appIdentifiers {
             guard let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: identifier) else { continue }
             if let bundle = Bundle(url: url) {
@@ -378,9 +206,17 @@ private extension AgentProvider {
         }
     }
 
-    /// The menu bar images keep a margin; the spark's thin rays need more
-    /// of the box than the knot to look the same size.
-    var markScale: CGFloat { self == .claude ? 1.45 : 1.2 }
+    /// The mark Vorssaint carries itself, in Resources/Images.
+    var bundledMarkName: String? {
+        switch self {
+        case .claude: return "agent-claude-code"
+        case .codex: return "agent-codex"
+        case .opencode, .copilot: return nil
+        }
+    }
+
+    /// The marks keep a margin in their box, so they draw past the symbol's size.
+    var markScale: CGFloat { 1.2 }
 
     /// What those apps name the mark they show in the menu bar.
     var menuBarImageNames: [String] {

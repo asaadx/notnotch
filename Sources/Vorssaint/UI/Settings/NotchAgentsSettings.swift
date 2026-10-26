@@ -12,8 +12,6 @@ struct NotchAgentsSettingsControls: View {
     @AppStorage(DefaultsKey.notchAgentsCodex) private var codex = true
     @AppStorage(DefaultsKey.notchAgentsOpenCode) private var opencode = true
     @AppStorage(DefaultsKey.notchAgentsCopilot) private var copilot = true
-    @AppStorage(DefaultsKey.notchAgentsCardOrder) private var cardOrder = ""
-    @AppStorage(DefaultsKey.notchAgentsHiddenCards) private var hiddenCards = ""
     @AppStorage(DefaultsKey.notchAgentsLimitDisplay) private var limitDisplay = NotchAgentLimitDisplay.remaining.rawValue
     @AppStorage(DefaultsKey.notchAgentsLimitFocus) private var limitFocus = NotchAgentLimitFocus.mostUsed.rawValue
     @AppStorage(DefaultsKey.notchAgentsLiveActivity) private var liveActivity = true
@@ -24,7 +22,6 @@ struct NotchAgentsSettingsControls: View {
     @AppStorage(DefaultsKey.notchAgentsLimitThreshold) private var limitThreshold = NotchAgentSupport.defaultLimitThreshold
     @AppStorage(DefaultsKey.notchAgentsDailyBudget) private var dailyBudget = 0.0
     @AppStorage(DefaultsKey.notchAgentsPriceUpdates) private var priceUpdates = true
-    @State private var dragging: NotchAgentCard?
     @State private var roots: [AgentProvider: Bool] = [:]
     @State private var claudeApp: URL?
     /// Read from the file while the section is off and the service is idle.
@@ -32,12 +29,6 @@ struct NotchAgentsSettingsControls: View {
 
     private var text: NotchAgentStrings { FeatureStrings.notchAgents(l10n.language) }
     private var locale: Locale { l10n.language.formattingLocale() }
-
-    private var orderedCards: [NotchAgentCard] {
-        let stored = cardOrder.split(separator: ",").compactMap { NotchAgentCard(rawValue: String($0)) }
-        var seen = Set<NotchAgentCard>()
-        return (stored + NotchAgentCard.allCases).filter { seen.insert($0).inserted }
-    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
@@ -50,29 +41,12 @@ struct NotchAgentsSettingsControls: View {
             providerRow(.opencode, isOn: $opencode)
             providerRow(.copilot, isOn: $copilot)
 
-            Divider()
-            Text(text.cardsTitle).font(.subheadline.weight(.medium))
-            LazyVGrid(columns: [GridItem(.adaptive(minimum: 104), spacing: 8)], spacing: 8) {
-                ForEach(orderedCards) { card in
-                    PanelReorderableItem(item: card,
-                                         order: Binding(get: { orderedCards },
-                                                        set: { cardOrder = $0.map(\.rawValue).joined(separator: ",") }),
-                                         dragging: $dragging) {
-                        NotchEditorItem(symbol: card.symbol, title: text.card(card), included: cardBinding(card)) {
-                            cardBinding(card).wrappedValue.toggle()
-                        }
-                        .accessibilityAction(named: FeatureStrings.clipboard(l10n.language).moveUp) { moveCard(card, by: -1) }
-                        .accessibilityAction(named: FeatureStrings.clipboard(l10n.language).moveDown) { moveCard(card, by: 1) }
-                    }
-                }
-            }
-            Text(text.cardsHint).font(.caption).foregroundStyle(.secondary)
-            // The one card that makes Codex ask the account, said where it is chosen.
-            if codex, cardBinding(.resets).wrappedValue {
+            // The one row that makes Codex ask the account, said where it shows.
+            if codex {
                 Text(text.resetsHelp).font(.caption).foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
-            SettingsChoiceRow(symbol: NotchAgentCard.limits.symbol, title: text.limitsAs, selection: $limitDisplay) {
+            SettingsChoiceRow(symbol: "gauge.with.dots.needle.33percent", title: text.limitsAs, selection: $limitDisplay) {
                 Text(text.remaining).tag(NotchAgentLimitDisplay.remaining.rawValue)
                 Text(text.used).tag(NotchAgentLimitDisplay.used.rawValue)
             }
@@ -150,9 +124,9 @@ struct NotchAgentsSettingsControls: View {
             if claude { findClaudeApp() }
         }
         .onChange(of: claude) { _, on in if on { findClaudeApp() } }
-        // Cards and agents set the page's height, and the live reading the
-        // closed island's width, which the island follows.
-        .onChange(of: [cardOrder, hiddenCards, String(claude), String(codex), String(opencode), String(copilot),
+        // Agents set the page's height, and the live reading the closed
+        // island's width, which the island follows.
+        .onChange(of: [String(claude), String(codex), String(opencode), String(copilot),
                        String(liveActivity), readout, limitDisplay, limitFocus]) { _, _ in
             NotchService.shared.syncWithPreferences()
         }
@@ -240,27 +214,7 @@ struct NotchAgentsSettingsControls: View {
             Toggle(title, isOn: isOn).labelsHidden().toggleStyle(.switch)
         }
     }
-
-    private func cardBinding(_ card: NotchAgentCard) -> Binding<Bool> {
-        Binding {
-            !hiddenCards.split(separator: ",").contains(Substring(card.rawValue))
-        } set: { shown in
-            var hidden = Set(hiddenCards.split(separator: ",").map(String.init))
-            if shown { hidden.remove(card.rawValue) } else { hidden.insert(card.rawValue) }
-            hiddenCards = hidden.sorted().joined(separator: ",")
-        }
-    }
-
-    /// VoiceOver's way to reorder the cards, which otherwise only drag.
-    private func moveCard(_ card: NotchAgentCard, by offset: Int) {
-        var order = orderedCards
-        guard let index = order.firstIndex(of: card), order.indices.contains(index + offset) else { return }
-        order.swapAt(index, index + offset)
-        cardOrder = order.map(\.rawValue).joined(separator: ",")
-    }
 }
-
-extension NotchAgentCard: PanelOrderItem {}
 
 /// The closed island while an agent works, drawn small beside its option:
 /// the mark on one side of the camera and the chosen reading on the other.

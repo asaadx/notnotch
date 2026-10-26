@@ -22,6 +22,21 @@ struct NotchTaskStrings {
     let loadFailed: String
     let saveFailed: String
     let reminders: String
+    let overdue: String
+    let killList: String
+    let whenever: String
+    let repeatingTime: String
+    let removeTime: String
+    let todoistHint: String
+    let todoistToken: String
+    let todoistTokenHint: String
+    let todoistGetToken: String
+    let todoistConnect: String
+    let todoistDisconnect: String
+    let todoistConnecting: String
+    let todoistConnected: String
+    let todoistOffline: String
+    let todoistRejected: String
 }
 
 extension FeatureStrings {
@@ -45,7 +60,22 @@ extension FeatureStrings {
             limitFormat: "Up to %d tasks",
             loadFailed: "Tasks could not be read.",
             saveFailed: "Tasks could not be saved.",
-            reminders: "Task reminders")
+            reminders: "Task reminders",
+            overdue: "Overdue",
+            killList: "Kill list",
+            whenever: "Whenever",
+            repeatingTime: "Change a repeating task’s time in Todoist",
+            removeTime: "Remove Time",
+            todoistHint: "Show the tasks due today in Todoist. What you add, finish, change or delete here goes back to Todoist.",
+            todoistToken: "API token",
+            todoistTokenHint: "Find it in Todoist under Settings › Integrations › Developer.",
+            todoistGetToken: "Get Token",
+            todoistConnect: "Connect",
+            todoistDisconnect: "Disconnect",
+            todoistConnecting: "Connecting…",
+            todoistConnected: "Connected",
+            todoistOffline: "Todoist can’t be reached. Changes are kept and sent once it can.",
+            todoistRejected: "Todoist didn’t accept this token.")
         case .ptBR: return NotchTaskStrings(
             title: "Tarefas",
             empty: "Nada planejado ainda",
@@ -64,7 +94,22 @@ extension FeatureStrings {
             limitFormat: "Até %d tarefas",
             loadFailed: "Não foi possível ler as tarefas.",
             saveFailed: "Não foi possível salvar as tarefas.",
-            reminders: "Lembretes de tarefas")
+            reminders: "Lembretes de tarefas",
+            overdue: "Atrasadas",
+            killList: "Kill list",
+            whenever: "Quando der",
+            repeatingTime: "Altere o horário de uma tarefa recorrente no Todoist",
+            removeTime: "Remover Horário",
+            todoistHint: "Mostra as tarefas para hoje no Todoist. O que você adicionar, concluir, alterar ou apagar aqui volta para o Todoist.",
+            todoistToken: "Token da API",
+            todoistTokenHint: "Encontre-o no Todoist em Configurações › Integrações › Desenvolvedor.",
+            todoistGetToken: "Obter Token",
+            todoistConnect: "Conectar",
+            todoistDisconnect: "Desconectar",
+            todoistConnecting: "Conectando…",
+            todoistConnected: "Conectado",
+            todoistOffline: "Não foi possível acessar o Todoist. As alterações são guardadas e enviadas assim que possível.",
+            todoistRejected: "O Todoist não aceitou este token.")
         case .es: return NotchTaskStrings(
             title: "Tareas",
             empty: "Nada planeado todavía",
@@ -83,7 +128,22 @@ extension FeatureStrings {
             limitFormat: "Hasta %d tareas",
             loadFailed: "No se pudieron leer las tareas.",
             saveFailed: "No se pudieron guardar las tareas.",
-            reminders: "Recordatorios de tareas")
+            reminders: "Recordatorios de tareas",
+            overdue: "Atrasadas",
+            killList: "Kill list",
+            whenever: "Cuando sea",
+            repeatingTime: "Cambia la hora de una tarea recurrente en Todoist",
+            removeTime: "Quitar hora",
+            todoistHint: "Muestra las tareas para hoy en Todoist. Lo que añadas, completes, cambies o elimines aquí vuelve a Todoist.",
+            todoistToken: "Token de la API",
+            todoistTokenHint: "Encuéntralo en Todoist en Configuración › Integraciones › Desarrollador.",
+            todoistGetToken: "Obtener token",
+            todoistConnect: "Conectar",
+            todoistDisconnect: "Desconectar",
+            todoistConnecting: "Conectando…",
+            todoistConnected: "Conectado",
+            todoistOffline: "No se puede acceder a Todoist. Los cambios se guardan y se envían en cuanto se pueda.",
+            todoistRejected: "Todoist no aceptó este token.")
         case .sk: return NotchTaskStrings(
             title: "Úlohy",
             empty: "Zatiaľ nič naplánované",
@@ -102,7 +162,22 @@ extension FeatureStrings {
             limitFormat: "Najviac %d úloh",
             loadFailed: "Úlohy sa nepodarilo načítať.",
             saveFailed: "Úlohy sa nepodarilo uložiť.",
-            reminders: "Pripomienky úloh")
+            reminders: "Pripomienky úloh",
+            overdue: "Po termíne",
+            killList: "Kill list",
+            whenever: "Kedykoľvek",
+            repeatingTime: "Čas opakovanej úlohy zmeňte v Todoiste",
+            removeTime: "Odstrániť čas",
+            todoistHint: "Zobrazuje úlohy na dnes z Todoistu. Čo tu pridáte, dokončíte, zmeníte alebo vymažete, sa vráti do Todoistu.",
+            todoistToken: "API token",
+            todoistTokenHint: "Nájdete ho v Todoiste v časti Nastavenia › Integrácie › Vývojár.",
+            todoistGetToken: "Získať token",
+            todoistConnect: "Pripojiť",
+            todoistDisconnect: "Odpojiť",
+            todoistConnecting: "Pripája sa…",
+            todoistConnected: "Pripojené",
+            todoistOffline: "Todoist je nedostupný. Zmeny sa uchovajú a odošlú, keď to bude možné.",
+            todoistRejected: "Todoist tento token neprijal.")
         case .de: return NotchTaskStrings(
             title: "Aufgaben",
             empty: "Noch nichts geplant",
@@ -121,7 +196,22 @@ extension FeatureStrings {
             limitFormat: "Bis zu %d Aufgaben",
             loadFailed: "Die Aufgaben konnten nicht gelesen werden.",
             saveFailed: "Die Aufgaben konnten nicht gesichert werden.",
-            reminders: "Aufgabenerinnerungen")
+            reminders: "Aufgabenerinnerungen",
+            overdue: "Überfällig",
+            killList: "Kill list",
+            whenever: "Irgendwann",
+            repeatingTime: "Die Zeit einer wiederkehrenden Aufgabe änderst du in Todoist",
+            removeTime: "Zeit entfernen",
+            todoistHint: "Zeigt die heute fälligen Aufgaben aus Todoist. Was du hier hinzufügst, erledigst, änderst oder löschst, geht an Todoist zurück.",
+            todoistToken: "API-Token",
+            todoistTokenHint: "Zu finden in Todoist unter Einstellungen › Integrationen › Entwickler.",
+            todoistGetToken: "Token holen",
+            todoistConnect: "Verbinden",
+            todoistDisconnect: "Trennen",
+            todoistConnecting: "Wird verbunden…",
+            todoistConnected: "Verbunden",
+            todoistOffline: "Todoist ist nicht erreichbar. Änderungen bleiben erhalten und werden gesendet, sobald es geht.",
+            todoistRejected: "Todoist hat dieses Token nicht akzeptiert.")
         case .fr: return NotchTaskStrings(
             title: "Tâches",
             empty: "Rien de prévu pour l’instant",
@@ -140,7 +230,22 @@ extension FeatureStrings {
             limitFormat: "Jusqu’à %d tâches",
             loadFailed: "Impossible de lire les tâches.",
             saveFailed: "Impossible d’enregistrer les tâches.",
-            reminders: "Rappels de tâches")
+            reminders: "Rappels de tâches",
+            overdue: "En retard",
+            killList: "Kill list",
+            whenever: "N’importe quand",
+            repeatingTime: "Modifiez l’heure d’une tâche récurrente dans Todoist",
+            removeTime: "Supprimer l’heure",
+            todoistHint: "Affiche les tâches prévues aujourd’hui dans Todoist. Ce que vous ajoutez, terminez, modifiez ou supprimez ici est renvoyé à Todoist.",
+            todoistToken: "Jeton d’API",
+            todoistTokenHint: "Disponible dans Todoist sous Paramètres › Intégrations › Développeur.",
+            todoistGetToken: "Obtenir le jeton",
+            todoistConnect: "Connecter",
+            todoistDisconnect: "Déconnecter",
+            todoistConnecting: "Connexion…",
+            todoistConnected: "Connecté",
+            todoistOffline: "Todoist est injoignable. Les modifications sont conservées et envoyées dès que possible.",
+            todoistRejected: "Todoist n’a pas accepté ce jeton.")
         case .it: return NotchTaskStrings(
             title: "Attività",
             empty: "Ancora niente in programma",
@@ -159,7 +264,22 @@ extension FeatureStrings {
             limitFormat: "Fino a %d attività",
             loadFailed: "Impossibile leggere le attività.",
             saveFailed: "Impossibile salvare le attività.",
-            reminders: "Promemoria attività")
+            reminders: "Promemoria attività",
+            overdue: "Scadute",
+            killList: "Kill list",
+            whenever: "Quando vuoi",
+            repeatingTime: "Cambia l’orario di un’attività ricorrente in Todoist",
+            removeTime: "Rimuovi orario",
+            todoistHint: "Mostra le attività in scadenza oggi in Todoist. Ciò che aggiungi, completi, modifichi o elimini qui torna in Todoist.",
+            todoistToken: "Token API",
+            todoistTokenHint: "Lo trovi in Todoist in Impostazioni › Integrazioni › Sviluppatore.",
+            todoistGetToken: "Ottieni token",
+            todoistConnect: "Collega",
+            todoistDisconnect: "Scollega",
+            todoistConnecting: "Collegamento…",
+            todoistConnected: "Collegato",
+            todoistOffline: "Todoist non è raggiungibile. Le modifiche vengono conservate e inviate appena possibile.",
+            todoistRejected: "Todoist non ha accettato questo token.")
         case .ru: return NotchTaskStrings(
             title: "Задачи",
             empty: "Пока ничего не запланировано",
@@ -178,7 +298,22 @@ extension FeatureStrings {
             limitFormat: "Не более %d задач",
             loadFailed: "Не удалось прочитать задачи.",
             saveFailed: "Не удалось сохранить задачи.",
-            reminders: "Напоминания о задачах")
+            reminders: "Напоминания о задачах",
+            overdue: "Просрочено",
+            killList: "Kill list",
+            whenever: "Когда угодно",
+            repeatingTime: "Время повторяющейся задачи меняется в Todoist",
+            removeTime: "Убрать время",
+            todoistHint: "Показывает задачи на сегодня из Todoist. Всё, что вы добавите, выполните, измените или удалите здесь, уйдёт обратно в Todoist.",
+            todoistToken: "API-токен",
+            todoistTokenHint: "Он есть в Todoist в разделе Настройки › Интеграции › Разработчик.",
+            todoistGetToken: "Получить токен",
+            todoistConnect: "Подключить",
+            todoistDisconnect: "Отключить",
+            todoistConnecting: "Подключение…",
+            todoistConnected: "Подключено",
+            todoistOffline: "Todoist недоступен. Изменения сохранены и будут отправлены, когда это станет возможно.",
+            todoistRejected: "Todoist не принял этот токен.")
         case .tr: return NotchTaskStrings(
             title: "Görevler",
             empty: "Henüz plan yok",
@@ -197,7 +332,22 @@ extension FeatureStrings {
             limitFormat: "En fazla %d görev",
             loadFailed: "Görevler okunamadı.",
             saveFailed: "Görevler kaydedilemedi.",
-            reminders: "Görev hatırlatıcıları")
+            reminders: "Görev hatırlatıcıları",
+            overdue: "Gecikmiş",
+            killList: "Kill list",
+            whenever: "Ne zaman olursa",
+            repeatingTime: "Yinelenen bir görevin saatini Todoist’te değiştirin",
+            removeTime: "Saati Kaldır",
+            todoistHint: "Todoist’te bugün için olan görevleri gösterir. Burada eklediğiniz, tamamladığınız, değiştirdiğiniz veya sildiğiniz her şey Todoist’e geri gider.",
+            todoistToken: "API belirteci",
+            todoistTokenHint: "Todoist’te Ayarlar › Entegrasyonlar › Geliştirici altında bulunur.",
+            todoistGetToken: "Belirteci Al",
+            todoistConnect: "Bağlan",
+            todoistDisconnect: "Bağlantıyı Kes",
+            todoistConnecting: "Bağlanıyor…",
+            todoistConnected: "Bağlandı",
+            todoistOffline: "Todoist’e ulaşılamıyor. Değişiklikler saklanır ve mümkün olduğunda gönderilir.",
+            todoistRejected: "Todoist bu belirteci kabul etmedi.")
         case .ja: return NotchTaskStrings(
             title: "タスク",
             empty: "まだ予定はありません",
@@ -216,7 +366,22 @@ extension FeatureStrings {
             limitFormat: "最大%d件",
             loadFailed: "タスクを読み込めませんでした。",
             saveFailed: "タスクを保存できませんでした。",
-            reminders: "タスクのリマインダー")
+            reminders: "タスクのリマインダー",
+            overdue: "期限切れ",
+            killList: "Kill list",
+            whenever: "いつでも",
+            repeatingTime: "繰り返しタスクの時刻はTodoistで変更します",
+            removeTime: "時刻を削除",
+            todoistHint: "Todoistで今日が期日のタスクを表示します。ここで追加、完了、変更、削除した内容はTodoistに反映されます。",
+            todoistToken: "APIトークン",
+            todoistTokenHint: "Todoistの 設定 › 連携機能 › 開発者 にあります。",
+            todoistGetToken: "トークンを取得",
+            todoistConnect: "接続",
+            todoistDisconnect: "接続解除",
+            todoistConnecting: "接続中…",
+            todoistConnected: "接続済み",
+            todoistOffline: "Todoistに接続できません。変更は保持され、接続でき次第送信されます。",
+            todoistRejected: "Todoistがこのトークンを受け付けませんでした。")
         case .ko: return NotchTaskStrings(
             title: "할 일",
             empty: "아직 계획이 없습니다",
@@ -235,7 +400,22 @@ extension FeatureStrings {
             limitFormat: "최대 %d개",
             loadFailed: "할 일을 읽을 수 없습니다.",
             saveFailed: "할 일을 저장할 수 없습니다.",
-            reminders: "할 일 알림")
+            reminders: "할 일 알림",
+            overdue: "기한 지남",
+            killList: "Kill list",
+            whenever: "아무 때나",
+            repeatingTime: "반복 작업의 시간은 Todoist에서 변경하세요",
+            removeTime: "시간 제거",
+            todoistHint: "Todoist에서 오늘 마감인 작업을 보여줍니다. 여기서 추가, 완료, 변경, 삭제한 내용은 Todoist에 반영됩니다.",
+            todoistToken: "API 토큰",
+            todoistTokenHint: "Todoist의 설정 › 통합 › 개발자에서 찾을 수 있습니다.",
+            todoistGetToken: "토큰 받기",
+            todoistConnect: "연결",
+            todoistDisconnect: "연결 해제",
+            todoistConnecting: "연결 중…",
+            todoistConnected: "연결됨",
+            todoistOffline: "Todoist에 연결할 수 없습니다. 변경 사항은 보관되었다가 연결되면 전송됩니다.",
+            todoistRejected: "Todoist가 이 토큰을 받아들이지 않았습니다.")
         case .uk: return NotchTaskStrings(
             title: "Завдання",
             empty: "Поки нічого не заплановано",
@@ -254,7 +434,22 @@ extension FeatureStrings {
             limitFormat: "Не більше %d завдань",
             loadFailed: "Не вдалося прочитати завдання.",
             saveFailed: "Не вдалося зберегти завдання.",
-            reminders: "Нагадування про завдання")
+            reminders: "Нагадування про завдання",
+            overdue: "Прострочено",
+            killList: "Kill list",
+            whenever: "Будь-коли",
+            repeatingTime: "Час повторюваного завдання змінюється в Todoist",
+            removeTime: "Прибрати час",
+            todoistHint: "Показує завдання на сьогодні з Todoist. Усе, що ви додасте, виконаєте, зміните чи видалите тут, повернеться в Todoist.",
+            todoistToken: "API-токен",
+            todoistTokenHint: "Він є в Todoist у розділі Налаштування › Інтеграції › Розробник.",
+            todoistGetToken: "Отримати токен",
+            todoistConnect: "Підключити",
+            todoistDisconnect: "Відключити",
+            todoistConnecting: "Підключення…",
+            todoistConnected: "Підключено",
+            todoistOffline: "Todoist недоступний. Зміни збережено, їх буде надіслано, щойно це стане можливим.",
+            todoistRejected: "Todoist не прийняв цей токен.")
         case .zhHans: return NotchTaskStrings(
             title: "任务",
             empty: "暂无计划",
@@ -273,7 +468,22 @@ extension FeatureStrings {
             limitFormat: "最多 %d 项",
             loadFailed: "无法读取任务。",
             saveFailed: "无法存储任务。",
-            reminders: "任务提醒")
+            reminders: "任务提醒",
+            overdue: "已逾期",
+            killList: "Kill list",
+            whenever: "随时",
+            repeatingTime: "请在 Todoist 中更改重复任务的时间",
+            removeTime: "移除时间",
+            todoistHint: "显示 Todoist 中今天到期的任务。在这里添加、完成、更改或删除的内容会同步回 Todoist。",
+            todoistToken: "API 令牌",
+            todoistTokenHint: "可在 Todoist 的“设置 › 集成 › 开发者”中找到。",
+            todoistGetToken: "获取令牌",
+            todoistConnect: "连接",
+            todoistDisconnect: "断开连接",
+            todoistConnecting: "正在连接…",
+            todoistConnected: "已连接",
+            todoistOffline: "无法连接 Todoist。更改会保留，并在可以连接时发送。",
+            todoistRejected: "Todoist 未接受此令牌。")
         case .zhTW: return NotchTaskStrings(
             title: "任務",
             empty: "尚無計畫",
@@ -292,7 +502,22 @@ extension FeatureStrings {
             limitFormat: "最多 %d 項",
             loadFailed: "無法讀取任務。",
             saveFailed: "無法儲存任務。",
-            reminders: "任務提醒")
+            reminders: "任務提醒",
+            overdue: "已逾期",
+            killList: "Kill list",
+            whenever: "隨時",
+            repeatingTime: "請在 Todoist 中更改重複任務的時間",
+            removeTime: "移除時間",
+            todoistHint: "顯示 Todoist 中今天到期的任務。在這裡新增、完成、更改或刪除的內容會同步回 Todoist。",
+            todoistToken: "API 權杖",
+            todoistTokenHint: "可在 Todoist 的「設定 › 整合 › 開發者」中找到。",
+            todoistGetToken: "取得權杖",
+            todoistConnect: "連接",
+            todoistDisconnect: "中斷連接",
+            todoistConnecting: "正在連接…",
+            todoistConnected: "已連接",
+            todoistOffline: "無法連接 Todoist。更改會保留，並在可以連接時傳送。",
+            todoistRejected: "Todoist 未接受此權杖。")
         case .zhHK: return NotchTaskStrings(
             title: "任務",
             empty: "尚未有計劃",
@@ -311,7 +536,22 @@ extension FeatureStrings {
             limitFormat: "最多 %d 項",
             loadFailed: "無法讀取任務。",
             saveFailed: "無法儲存任務。",
-            reminders: "任務提醒")
+            reminders: "任務提醒",
+            overdue: "已逾期",
+            killList: "Kill list",
+            whenever: "隨時",
+            repeatingTime: "請在 Todoist 更改重複任務的時間",
+            removeTime: "移除時間",
+            todoistHint: "顯示 Todoist 中今日到期的任務。在這裡加入、完成、更改或刪除的內容會同步回 Todoist。",
+            todoistToken: "API 權杖",
+            todoistTokenHint: "可在 Todoist 的「設定 › 整合 › 開發者」中找到。",
+            todoistGetToken: "取得權杖",
+            todoistConnect: "連接",
+            todoistDisconnect: "中斷連接",
+            todoistConnecting: "正在連接…",
+            todoistConnected: "已連接",
+            todoistOffline: "無法連接 Todoist。更改會保留，並在可以連接時傳送。",
+            todoistRejected: "Todoist 未接受此權杖。")
         }
     }
 }

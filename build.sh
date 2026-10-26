@@ -273,6 +273,9 @@ if (( TEST )); then
         Sources/Vorssaint/Services/Notch/NotchWatchSupport.swift
         Sources/Vorssaint/Core/NotchTaskStrings.swift
         Sources/Vorssaint/Services/Notch/NotchTaskSupport.swift
+        Sources/Vorssaint/Core/NotchStickyStrings.swift
+        Sources/Vorssaint/Services/Notch/NotchStickySupport.swift
+        Sources/Vorssaint/Services/Notch/NotchTodoistSupport.swift
         Sources/Vorssaint/Core/NotchMascotStrings.swift
         Sources/Vorssaint/Services/Notch/NotchMascotSupport.swift
         Sources/Vorssaint/Services/CommandBar/CommandBarDropletMotion.swift
@@ -294,6 +297,7 @@ if (( TEST )); then
         Sources/Vorssaint/Services/AgentUsage/AgentUsageStore.swift
         Sources/Vorssaint/Services/AgentUsage/AgentUsageArchive.swift
         Sources/Vorssaint/Services/AgentUsage/AgentClaudeAppUsage.swift
+        Sources/Vorssaint/Services/AgentUsage/AgentClaudeCodeUsage.swift
         Sources/Vorssaint/Services/AgentUsage/AgentCodexServer.swift
         Sources/Vorssaint/Services/AgentUsage/AgentOpenCodeReader.swift
         Sources/Vorssaint/Services/Notch/NotchGestureSupport.swift

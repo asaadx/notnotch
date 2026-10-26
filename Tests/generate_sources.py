@@ -1195,7 +1195,7 @@ def main():
           + "var text: NotchAgentStrings { FeatureStrings.notchAgents(language) }\n"
           + "var body: some View {\n"
           + declaration("Sources/Vorssaint/UI/Settings/NotchAgentsSettings.swift",
-                        "            SettingsChoiceRow(symbol: NotchAgentCard.limits.symbol")
+                        "            SettingsChoiceRow(symbol: \"gauge.with.dots.needle.33percent\"")
           + "}\n}\n"
           # The AI agents card's menu rows, each with the indent it has there.
           + "".join(f"struct {name}: View {{\nlet language: AppLanguage\n"

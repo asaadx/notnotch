@@ -110,7 +110,11 @@ struct MetricsTests {
             }),
             ("switcher-model", { SwitcherModelFeatureTests.run(suite) }),
             ("agents", { NotchAgentTests.run(suite) }),
-            ("notch-tasks", { NotchTaskTests.run(suite) }),
+            ("notch-tasks", {
+                NotchTaskTests.run(suite)
+                NotchTodoistTests.run(suite)
+                NotchStickyTests.run(suite)
+            }),
             ("features", {
                 FeatureCatalogTests.run(suite)
                 MenuPanelSectionGateContract.run(suite)

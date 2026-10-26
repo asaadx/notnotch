@@ -14,6 +14,11 @@ final class NotchAgentAnimationView: NSView {
     private let dot = CAShapeLayer()
     private let ring = CAShapeLayer()
     private var isPulse = false
+    /// A band of light sweeps across the still mark instead of it breathing.
+    private var shimmers = false
+    private let shine = CALayer()
+    private let shineMask = CALayer()
+    private let band = CAGradientLayer()
     private var size: CGFloat = 0
     private var animates = false
     private var visibilityObserver: NSObjectProtocol?
@@ -28,6 +33,14 @@ final class NotchAgentAnimationView: NSView {
         layer?.addSublayer(ring)
         ring.fillColor = nil
         ring.lineWidth = 1
+        // The band only lights the mark's own pixels.
+        artwork.addSublayer(shine)
+        shine.mask = shineMask
+        shine.addSublayer(band)
+        band.startPoint = CGPoint(x: 0, y: 0.5)
+        band.endPoint = CGPoint(x: 1, y: 0.5)
+        band.colors = [NSColor.white.withAlphaComponent(0).cgColor, NSColor.white.withAlphaComponent(0.65).cgColor,
+                       NSColor.white.withAlphaComponent(0).cgColor]
         setAccessibilityElement(false)
     }
 
@@ -39,9 +52,10 @@ final class NotchAgentAnimationView: NSView {
 
     override func hitTest(_ point: NSPoint) -> NSView? { nil }
 
-    func configureGlyph(image: NSImage?, size: CGFloat, tint: NSColor?, animates: Bool) {
+    func configureGlyph(image: NSImage?, size: CGFloat, tint: NSColor?, animates: Bool, shimmers: Bool = false) {
         let changed = self.image !== image || self.size != size || self.tint != tint || isPulse
         isPulse = false
+        self.shimmers = shimmers
         self.image = image
         self.tint = tint
         self.size = size
@@ -115,6 +129,8 @@ final class NotchAgentAnimationView: NSView {
         CATransaction.setDisableActions(true)
         artwork.contents = bitmap.cgImage
         artwork.contentsScale = scale
+        shineMask.contents = bitmap.cgImage
+        shineMask.contentsScale = scale
         CATransaction.commit()
     }
 
@@ -143,6 +159,11 @@ final class NotchAgentAnimationView: NSView {
         for shape in [dot, ring] where shape.path?.boundingBox != box {
             shape.path = CGPath(ellipseIn: box, transform: nil)
         }
+        shine.frame = box
+        shineMask.frame = box
+        // A tilted band, tall enough to cover the mark at its slant.
+        band.bounds = CGRect(x: 0, y: 0, width: size * Self.bandWidth, height: size * 1.6)
+        band.setAffineTransform(CGAffineTransform(rotationAngle: -.pi / 9))
         show(at: moving ? CACurrentMediaTime() : nil)
         CATransaction.commit()
         if moving { clock.start(in: self) } else { clock.stop() }
@@ -150,14 +171,22 @@ final class NotchAgentAnimationView: NSView {
 
     /// The glyph grows and brightens and settles back, and the pulse's ring
     /// spreads from the dot as it fades, in the rhythm of the animations they
-    /// replace. With no time, both rest.
+    /// replace; a shimmering mark holds still while its light sweeps across.
+    /// With no time, all rest.
     private func show(at time: CFTimeInterval?) {
         var glyph = (scale: 1.0, opacity: 1.0)
         var spreading = (scale: 1.0, opacity: 0.0)
+        let sweep = shimmers && !isPulse ? time.flatMap { Self.shimmer(at: $0 - motionStart) } : nil
+        shine.isHidden = sweep == nil
+        if let sweep {
+            // From just off the left edge to just off the right one.
+            let travel = size * (1 + Self.bandWidth)
+            band.position = CGPoint(x: -size * Self.bandWidth / 2 + travel * sweep, y: size / 2)
+        }
         if let time, isPulse {
             let spread = NotchDecorativeClock.pulse(time - motionStart, period: 1.6)
             spreading = (1 + 0.9 * spread, 0.6 * (1 - spread))
-        } else if let time {
+        } else if let time, !shimmers {
             let breath = NotchDecorativeClock.swing((time - motionStart) / 1.2)
             glyph = (0.84 + 0.16 * breath, 0.7 + 0.3 * breath)
         }
@@ -165,6 +194,22 @@ final class NotchAgentAnimationView: NSView {
         artwork.opacity = Float(glyph.opacity)
         ring.transform = CATransform3DMakeScale(spreading.scale, spreading.scale, 1)
         ring.opacity = Float(spreading.opacity)
+    }
+
+    /// The band's width, as a share of the mark's.
+    static let bandWidth: CGFloat = 0.55
+    /// A sweep every few seconds: how long one takes, and how often one starts.
+    static let shimmerSweep = 1.1
+    static let shimmerPeriod = 3.2
+
+    /// How far across the mark the light is, 0 to 1, `elapsed` seconds into
+    /// the motion, or nil between sweeps. The first starts at once.
+    static func shimmer(at elapsed: Double) -> Double? {
+        guard elapsed >= 0 else { return nil }
+        let into = elapsed.truncatingRemainder(dividingBy: shimmerPeriod)
+        guard into < shimmerSweep else { return nil }
+        let progress = into / shimmerSweep
+        return progress * progress * (3 - 2 * progress)
     }
 
     func step(at time: CFTimeInterval) {

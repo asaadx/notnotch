@@ -98,5 +98,20 @@ enum NotchAgentAnimationTests {
             view.removeFromSuperview()
         }
         expect(released == nil, "visibility observation does not retain discarded agent artwork")
+
+        let sweep = NotchAgentAnimationView.self
+        expect(sweep.shimmer(at: 0) == 0, "the first shimmer starts at once, from the mark's edge")
+        expect(sweep.shimmer(at: sweep.shimmerSweep - 0.001).map { $0 > 0.99 } == true,
+               "a shimmer crosses the whole mark")
+        expect(sweep.shimmer(at: sweep.shimmerSweep + 0.1) == nil, "the mark rests between shimmers")
+        expect(sweep.shimmer(at: sweep.shimmerPeriod) == 0, "the next shimmer starts a period later")
+        var forward = true
+        var last = -1.0
+        for frame in 0..<Int(sweep.shimmerSweep * 60) {
+            guard let at = sweep.shimmer(at: Double(frame) / 60) else { forward = false; break }
+            if at < last { forward = false }
+            last = at
+        }
+        expect(forward, "a shimmer only ever moves forward")
     }
 }

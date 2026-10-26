@@ -5,12 +5,14 @@ import Foundation
 
 /// One line of the island's to-do list: a time of day and what to do then.
 /// The time is minutes after midnight, with no date, so a list made for a
-/// day reads the same the next morning.
+/// day reads the same the next morning. A task from Todoist may have no
+/// time, and reads under Anytime; it belongs to the day it is due.
 struct NotchTask: Codable, Equatable, Identifiable {
     var id = UUID()
-    var minutes: Int
+    var minutes: Int?
     var text: String
     var done = false
+    var todoist: NotchTodoistLink?
 }
 
 /// The time of day as three wheels show it: an hour from 1 to 12, a minute
@@ -60,9 +62,11 @@ enum NotchTaskSupport {
             : "\(time.hour):" + String(format: "%02d", time.minute) + meridiem
     }
 
-    /// "5pm — gym": the whole row as it reads, lowercase throughout.
+    /// "5pm — gym": the whole row as it reads, lowercase throughout. A task
+    /// with no time is its words alone.
     static func rowText(_ task: NotchTask) -> String {
-        timeLabel(task.minutes) + " — " + displayText(task.text)
+        guard let minutes = task.minutes else { return displayText(task.text) }
+        return timeLabel(minutes) + " — " + displayText(task.text)
     }
 
     static func displayText(_ text: String) -> String {
@@ -87,15 +91,28 @@ enum NotchTaskSupport {
     /// The next task follows the list's last task by time, not the one just
     /// added; nil for an empty list.
     static func followingMinutes(after tasks: [NotchTask]) -> Int? {
-        tasks.map(\.minutes).max().map { followingMinutes(after: $0) }
+        tasks.compactMap(\.minutes).max().map { followingMinutes(after: $0) }
     }
 
     /// The list as it reads: by time of day, with tasks at the same time in
-    /// the order they were added. Finishing one never moves it.
+    /// the order they were added. Finishing one never moves it. Tasks with
+    /// no time are left out; they read under Anytime.
     static func ordered(_ tasks: [NotchTask]) -> [NotchTask] {
         tasks.enumerated()
-            .sorted { ($0.element.minutes, $0.offset) < ($1.element.minutes, $1.offset) }
-            .map(\.element)
+            .compactMap { offset, task in task.minutes.map { (minutes: $0, offset: offset, task: task) } }
+            .sorted { ($0.minutes, $0.offset) < ($1.minutes, $1.offset) }
+            .map(\.task)
+    }
+
+    /// Tasks with no time, in the order they were added; overdue Todoist
+    /// tasks read on their own.
+    static func anytime(_ tasks: [NotchTask]) -> [NotchTask] {
+        tasks.filter { $0.minutes == nil && !NotchTodoistSupport.isOverdue($0) }
+    }
+
+    /// Todoist tasks still open from an earlier day, in Todoist's order.
+    static func overdue(_ tasks: [NotchTask]) -> [NotchTask] {
+        tasks.filter { NotchTodoistSupport.isOverdue($0) }
     }
 
     /// A time typed by hand: "8", "8pm", "8:30p", "830pm", "20:30" or
@@ -149,19 +166,33 @@ enum NotchTaskSupport {
     /// Tasks still to do whose time came up after `from`, until `to`.
     static func dueTasks(_ tasks: [NotchTask], from: Date, to: Date, calendar: Calendar = .current) -> [NotchTask] {
         ordered(tasks).filter { task in
-            guard !task.done, var at = occurrence(of: task.minutes, onDayOf: to, calendar: calendar) else { return false }
+            guard !task.done, let minutes = task.minutes,
+                  var at = occurrence(of: minutes, onDayOf: to, calendar: calendar) else { return false }
             if at > to { at = calendar.date(byAdding: .day, value: -1, to: at) ?? at }
             return at > from && at <= to
         }
     }
 
     /// When a task still to do next comes up after `date`, on that day or
-    /// the next.
+    /// the next. A task from Todoist is due on its day only.
     static func nextReminder(_ tasks: [NotchTask], after date: Date, calendar: Calendar = .current) -> Date? {
         tasks.filter { !$0.done }.compactMap { task -> Date? in
-            guard let today = occurrence(of: task.minutes, onDayOf: date, calendar: calendar) else { return nil }
-            return today > date ? today : calendar.date(byAdding: .day, value: 1, to: today)
+            guard let minutes = task.minutes,
+                  let today = occurrence(of: minutes, onDayOf: date, calendar: calendar) else { return nil }
+            if today > date { return today }
+            return task.todoist == nil ? calendar.date(byAdding: .day, value: 1, to: today) : nil
         }.min()
+    }
+
+    /// The reminders macOS keeps while the app is closed: one a task still to
+    /// do, at its next time. A task from Todoist whose time today has passed
+    /// is not reminded of tomorrow.
+    static func handedOff(_ tasks: [NotchTask], after date: Date, calendar: Calendar = .current) -> [NotchTask] {
+        tasks.filter { task in
+            guard !task.done, let minutes = task.minutes else { return false }
+            guard task.todoist != nil else { return true }
+            return occurrence(of: minutes, onDayOf: date, calendar: calendar).map { $0 > date } ?? false
+        }
     }
 
     /// The next whole hour, so a new task starts somewhere sensible.
@@ -178,7 +209,7 @@ enum NotchTaskSupport {
             guard seen.insert(task.id).inserted, let text = sanitizedText(task.text) else { return nil }
             var task = task
             task.text = text
-            task.minutes = clampedMinutes(task.minutes)
+            task.minutes = task.minutes.map(clampedMinutes)
             return task
         }
         .prefix(maximumCount).map { $0 }

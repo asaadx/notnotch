@@ -2991,10 +2991,6 @@ enum NotchAgentTests {
                         && NotchCompactActivity.agents.module == .agents,
                      "a working agent outranks music but not a download")
 
-        defaults.set("trend,unknown,trend,spend", forKey: DefaultsKey.notchAgentsCardOrder)
-        defaults.set("activity,projects", forKey: DefaultsKey.notchAgentsHiddenCards)
-        suite.expect(NotchAgentSupport.cards(in: defaults) == [.trend, .spend, .limits, .live, .models, .resets],
-                     "the saved order ignores unknown and repeated cards and appends new ones")
         defaults.set(false, forKey: DefaultsKey.notchAgentsCodex)
         suite.expect(NotchAgentSupport.providers(in: defaults) == [.claude, .opencode, .copilot], "an agent can be left out")
         defaults.set(false, forKey: DefaultsKey.notchAgentsOpenCode)
@@ -3014,7 +3010,6 @@ enum NotchAgentTests {
 
         let keys = [DefaultsKey.notchAgentsEnabled, DefaultsKey.notchAgentsClaude, DefaultsKey.notchAgentsCodex,
                     DefaultsKey.notchAgentsOpenCode, DefaultsKey.notchAgentsCopilot,
-                    DefaultsKey.notchAgentsCardOrder, DefaultsKey.notchAgentsHiddenCards, DefaultsKey.notchAgentsPeriod,
                     DefaultsKey.notchAgentsLimitDisplay, DefaultsKey.notchAgentsLimitFocus, DefaultsKey.notchAgentsLiveActivity, DefaultsKey.notchAgentsReadout,
                     DefaultsKey.notchAgentsFinishAlert, DefaultsKey.notchAgentsFinishMinimum, DefaultsKey.notchAgentsLimitAlert,
                     DefaultsKey.notchAgentsLimitThreshold, DefaultsKey.notchAgentsDailyBudget, DefaultsKey.notchAgentsPriceUpdates]
@@ -3029,30 +3024,59 @@ enum NotchAgentTests {
                         && AppFeature.availabilityDefaults[AppFeature.notchAgents.availabilityKey] as? Bool == true,
                      "the AI page is a Dynamic Island extension that needs no system permission")
 
-        let limits = NotchAgentTile(card: .limits, provider: .claude)
-        let codex = NotchAgentTile(card: .limits, provider: .codex)
-        let copilot = NotchAgentTile(card: .limits, provider: .copilot)
-        let spend = NotchAgentTile(card: .spend, provider: nil)
-        let trend = NotchAgentTile(card: .trend, provider: nil)
-        suite.expect(NotchAgentSupport.tiles(cards: [.limits, .trend], providers: [.claude, .codex, .copilot])
-                        == [limits, codex, trend] && !AgentProvider.copilot.reportsLimits
-                        && !NotchAgentSupport.tiles(cards: [.limits], providers: [.copilot]).contains(copilot),
-                     "only agents whose local logs report plan allowances get a limits card")
-        let resets = NotchAgentTile(card: .resets, provider: .codex)
-        suite.expect(NotchAgentSupport.tiles(cards: [.resets, .spend], providers: [.claude, .codex, .copilot]) == [resets, spend]
-                        && NotchAgentSupport.tiles(cards: [.resets, .spend], providers: [.claude, .copilot]) == [spend],
-                     "the resets card belongs to Codex and leaves with it")
-        suite.expect(NotchAgentSupport.tiles(cards: [.limits, .resets, .spend], providers: [.copilot]) == [spend],
-                     "a Copilot-only dashboard never offers unavailable limits or Codex account resets")
-        suite.expect(NotchAgentSupport.rows([limits, codex, spend, trend], width: 424) == [[limits, codex], [spend], [trend]]
-                        && NotchAgentSupport.rows([limits, trend, codex], width: 424) == [[limits], [trend], [codex]],
-                     "cards pair in reading order, and charts and lone cards take the row")
-        suite.expect(NotchAgentSupport.rows([limits, codex], width: 330) == [[limits], [codex]],
-                     "a narrow island stacks every card")
-        suite.expect(NotchAgentSupport.contentHeight([[limits, codex], [trend]])
-                        == NotchAgentSupport.cardHeight + NotchAgentSupport.spacing + NotchAgentSupport.chartHeight
-                        && NotchAgentSupport.contentHeight([]) == 0,
-                     "the page is as tall as its rows")
+        let now = Date(timeIntervalSince1970: 1_800_000_000)
+        func limit(_ id: String, _ kind: AgentLimitWindow.Kind, scope: String? = nil) -> AgentLimitWindow {
+            AgentLimitWindow(id: id, kind: kind, minutes: nil, scope: scope, usedPercent: 10, resetsAt: nil)
+        }
+        var page = AgentUsageSnapshot()
+        page.limits[.claude] = AgentLimits(provider: .claude,
+                                           windows: [limit("opus", .weekly, scope: "Opus"), limit("week", .weekly),
+                                                     limit("session", .session)],
+                                           observedAt: now, source: .claudeApp)
+        suite.expect(NotchAgentSupport.windows(page, provider: .claude, now: now).map(\.id) == ["session", "week", "opus"],
+                     "the page lists the session, then the week, then a model's own week")
+        suite.expect(NotchAgentSupport.pageProviders([.claude, .codex, .copilot]) == [.claude, .codex]
+                        && !AgentProvider.copilot.reportsLimits,
+                     "only agents whose local logs report plan allowances get a section")
+        suite.expect(NotchAgentSupport.rowCount(page, provider: .claude, now: now) == 3
+                        && NotchAgentSupport.rowCount(page, provider: .opencode, now: now) == 1
+                        && NotchAgentSupport.rowCount(page, provider: .codex, now: now) == 2,
+                     "an agent without allowances keeps a row saying so, and Codex adds its resets")
+        suite.expect(NotchAgentSupport.contentHeight(page, providers: [.claude, .codex, .copilot], now: now)
+                        == NotchAgentSupport.sectionHeight(rows: 3) + NotchAgentSupport.sectionGap
+                            + NotchAgentSupport.sectionHeight(rows: 2)
+                        && NotchAgentSupport.contentHeight(page, providers: [.copilot], now: now) == 0,
+                     "the page is as tall as its sections")
+        let usageText = """
+        You are currently using your subscription to power your Claude Code usage
+
+        Current session: 90% used · resets Oct 22 at 1:59am (America/Toronto)
+        Current week (all models): 51% used · resets Oct 22 at 10:59pm (America/Toronto)
+        Current week (Fable): 14% used · resets Oct 22 at 10:59pm (America/Toronto)
+        Current week (Sonnet only): 3% used
+
+        What's contributing to your limits usage?
+        """
+        let usageNow = ISO8601DateFormatter().date(from: "2026-10-21T18:00:00Z")!
+        let code = AgentClaudeCodeUsage.limits(from: usageText, now: usageNow)
+        let toronto = ISO8601DateFormatter().date(from: "2026-10-22T05:59:00Z")!
+        suite.expect(code?.windows.map(\.kind) == [.session, .weekly, .weekly, .weekly]
+                        && code?.windows.map(\.scope) == [nil, nil, "Fable", "Sonnet"]
+                        && code?.windows.map(\.usedPercent) == [90, 51, 14, 3]
+                        && code?.windows.first?.resetsAt == toronto && code?.windows.last?.resetsAt == nil
+                        && code?.source == .account && code?.provider == .claude,
+                     "Claude Code's usage lines become the plan's windows, a model's own week by its name")
+        suite.expect(AgentClaudeCodeUsage.limits(from: "Using an API key\n", now: usageNow) == nil,
+                     "an account without plan limits reports none")
+        let zone = TimeZone(identifier: "America/Toronto")!
+        let late = ISO8601DateFormatter().date(from: "2026-12-31T20:00:00Z")!
+        suite.expect(AgentClaudeCodeUsage.resetDate("Jan 2 at 3pm", timeZone: zone, now: late)
+                        == ISO8601DateFormatter().date(from: "2027-01-02T20:00:00Z")
+                        && AgentClaudeCodeUsage.resetDate("1:30am", timeZone: zone, now: late)
+                        == ISO8601DateFormatter().date(from: "2027-01-01T06:30:00Z"),
+                     "a renewal without a year or a day is the next one to come")
+        suite.expect(AgentClaudeCodeUsage.arguments.contains("--no-session-persistence"),
+                     "asking Claude Code for its usage saves no session")
         let geometry = NotchGeometry(screen: CGRect(x: 0, y: 0, width: 1512, height: 982), safeAreaTop: 32,
                                      cameraWidth: 185, layout: .spacious, compactSideRoom: 200)
         suite.expect(geometry.expandedSize(module: .agents, agentsHeight: 96).height

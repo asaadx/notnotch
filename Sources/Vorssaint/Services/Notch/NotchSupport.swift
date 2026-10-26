@@ -7,7 +7,7 @@ import Foundation
 import CoreGraphics
 
 enum NotchModule: String, CaseIterable, Identifiable {
-    case controls, mixer, music, clipboard, captures, files, system, tools, calendar, notifications, timer, camera, downloads, scratchpad, agents, watch, tasks
+    case controls, mixer, music, clipboard, captures, files, system, tools, calendar, notifications, timer, camera, downloads, scratchpad, agents, watch, tasks, stickies
     var id: String { rawValue }
 
     var symbol: String {
@@ -32,6 +32,7 @@ enum NotchModule: String, CaseIterable, Identifiable {
         case .agents: return "sparkles"
         case .watch: return "eye"
         case .tasks: return "checklist"
+        case .stickies: return "note"
         }
     }
 
@@ -55,13 +56,14 @@ enum NotchModule: String, CaseIterable, Identifiable {
         case .agents: return "g"
         case .watch: return "o"
         case .tasks: return "l"
+        case .stickies: return "k"
         }
     }
 
     func isAvailable(in defaults: UserDefaults = .standard) -> Bool {
         switch self {
         // A list kept by the island alone, with nothing to grant.
-        case .controls, .music, .tasks: return true
+        case .controls, .music, .tasks, .stickies: return true
         case .timer: return AppFeature.notchTimer.isAvailable(in: defaults)
         case .camera: return AppFeature.cameraPreview.isAvailable(in: defaults)
         case .downloads: return AppFeature.notchDownloads.isAvailable(in: defaults)
@@ -2429,7 +2431,7 @@ struct NotchGeometry: Equatable {
                 // Only the cards a person chose; a short set leaves a short island.
                 contentHeight = min(budget, agentsHeight.map { $0 > 0 ? $0 : NotchLayout.emptyHeight } ?? budget)
             // Lists and previews fill the chosen content budget.
-            case .mixer, .calendar, .clipboard, .captures, .files, .notifications, .downloads, .camera, .scratchpad, .watch, .tasks:
+            case .mixer, .calendar, .clipboard, .captures, .files, .notifications, .downloads, .camera, .scratchpad, .watch, .tasks, .stickies:
                 contentHeight = budget
             }
         }

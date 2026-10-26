@@ -227,6 +227,7 @@ final class NotchService: ObservableObject {
             || (expanded && !showingSections && selected == .captures && captureContent != nil)
             || (expanded && !showingSections && selected == .tools && (QuickLauncherService.shared.activeUtility != nil || QuickLauncherService.shared.isEditing))
             || (expanded && !showingSections && selected == .tasks && NotchTaskService.shared.interacting)
+            || (expanded && !showingSections && selected == .stickies && NotchStickyService.shared.editing)
     }
     /// Up and measuring its display. Settings previews read the island's
     /// size only then.
@@ -819,18 +820,16 @@ final class NotchService: ObservableObject {
                                      timerMode: NotchTimerService.shared.session.hasSession
                                         ? NotchTimerService.shared.session.mode : NotchTimerSupport.savedMode(),
                                      agentsHeight: module == .agents && !detail && !panel
-                                        ? agentsContentHeight(width: geometry.contentWidth) : nil)
+                                        ? agentsContentHeight() : nil)
     }
 
-    /// The AI page is as tall as the cards it shows; nil while the logs are
-    /// first read, when the page fills the island with its progress.
-    private func agentsContentHeight(width: CGFloat) -> CGFloat? {
+    /// The AI page is as tall as the allowances it lists; nil while the logs
+    /// are first read, when the page fills the island with its progress.
+    private func agentsContentHeight() -> CGFloat? {
         let usage = AgentUsageService.shared.snapshot
         guard usage.loaded else { return nil }
         let providers = NotchAgentSupport.providers().filter(usage.seen.contains)
-        guard !providers.isEmpty else { return 0 }
-        return NotchAgentSupport.contentHeight(NotchAgentSupport.rows(
-            NotchAgentSupport.tiles(cards: NotchAgentSupport.cards(), providers: providers), width: width))
+        return NotchAgentSupport.contentHeight(usage, providers: providers, now: Date())
     }
     var expandedGeometry: NotchGeometry {
         var result = geometry
@@ -1080,6 +1079,7 @@ final class NotchService: ObservableObject {
         // screen, and says so with a notification if it cannot show itself.
         NotchWatchService.shared.syncWithPreferences()
         NotchTaskService.shared.syncReminders()
+        NotchTodoistService.shared.syncWithPreferences()
         // Requested file work can continue while locked, but disabling its
         // feature must still cancel it before presentation resumes.
         NotchFileToolsService.shared.syncWithPreferences()
@@ -1170,6 +1170,7 @@ final class NotchService: ObservableObject {
         NotchFileToolsService.shared.stop()
         AgentUsageService.shared.stop()
         NotchTaskService.shared.stopReminders()
+        NotchTodoistService.shared.stop()
         guard running else { return }
         running = false
         NotchTimerService.shared.stop()

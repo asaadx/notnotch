@@ -32,6 +32,9 @@ struct NotchCameraView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        // Choosing the page is asking for the mirror, so it opens right away;
+        // the button stays for opening it again after a stop.
+        .onAppear { service.showEmbedded() }
         .onDisappear { service.hideEmbedded() }
     }
 }
